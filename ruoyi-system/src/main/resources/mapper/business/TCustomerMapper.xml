@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.TCustomerMapper">
+    
+    <resultMap type="TCustomer" id="TCustomerResult">
+        <result property="id"    column="id"    />
+        <result property="username"    column="username"    />
+        <result property="password"    column="password"    />
+        <result property="inviteCode"    column="invite_code"    />
+        <result property="path"    column="path"    />
+        <result property="pId"    column="p_id"    />
+        <result property="balance"    column="balance"    />
+        <result property="lockBalance"    column="lock_balance"    />
+        <result property="grade"    column="grade"    />
+        <result property="withdrawPassword"    column="withdraw_password"    />
+        <result property="lastLoginAddress"    column="last_login_address"    />
+        <result property="lastLoginTime"    column="last_login_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectTCustomerVo">
+        select id, username, password, invite_code, path, p_id, balance, lock_balance, grade, withdraw_password, last_login_address, last_login_time, create_time, update_time, status from t_customer
+    </sql>
+
+    <select id="selectTCustomerList" parameterType="TCustomer" resultMap="TCustomerResult">
+        <include refid="selectTCustomerVo"/>
+        <where>  
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="password != null  and password != ''"> and password = #{password}</if>
+            <if test="inviteCode != null  and inviteCode != ''"> and invite_code = #{inviteCode}</if>
+            <if test="path != null  and path != ''"> and path = #{path}</if>
+            <if test="pId != null "> and p_id = #{pId}</if>
+            <if test="balance != null "> and balance = #{balance}</if>
+            <if test="lockBalance != null "> and lock_balance = #{lockBalance}</if>
+            <if test="grade != null "> and grade = #{grade}</if>
+            <if test="withdrawPassword != null  and withdrawPassword != ''"> and withdraw_password = #{withdrawPassword}</if>
+            <if test="lastLoginAddress != null  and lastLoginAddress != ''"> and last_login_address = #{lastLoginAddress}</if>
+            <if test="lastLoginTime != null "> and last_login_time = #{lastLoginTime}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectTCustomerById" parameterType="Long" resultMap="TCustomerResult">
+        <include refid="selectTCustomerVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTCustomer" parameterType="TCustomer" useGeneratedKeys="true" keyProperty="id">
+        insert into t_customer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">username,</if>
+            <if test="password != null and password != ''">password,</if>
+            <if test="inviteCode != null and inviteCode != ''">invite_code,</if>
+            <if test="path != null">path,</if>
+            <if test="pId != null">p_id,</if>
+            <if test="balance != null">balance,</if>
+            <if test="lockBalance != null">lock_balance,</if>
+            <if test="grade != null">grade,</if>
+            <if test="withdrawPassword != null">withdraw_password,</if>
+            <if test="lastLoginAddress != null">last_login_address,</if>
+            <if test="lastLoginTime != null">last_login_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">#{username},</if>
+            <if test="password != null and password != ''">#{password},</if>
+            <if test="inviteCode != null and inviteCode != ''">#{inviteCode},</if>
+            <if test="path != null">#{path},</if>
+            <if test="pId != null">#{pId},</if>
+            <if test="balance != null">#{balance},</if>
+            <if test="lockBalance != null">#{lockBalance},</if>
+            <if test="grade != null">#{grade},</if>
+            <if test="withdrawPassword != null">#{withdrawPassword},</if>
+            <if test="lastLoginAddress != null">#{lastLoginAddress},</if>
+            <if test="lastLoginTime != null">#{lastLoginTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCustomer" parameterType="TCustomer">
+        update t_customer
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="inviteCode != null and inviteCode != ''">invite_code = #{inviteCode},</if>
+            <if test="path != null">path = #{path},</if>
+            <if test="pId != null">p_id = #{pId},</if>
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="lockBalance != null">lock_balance = #{lockBalance},</if>
+            <if test="grade != null">grade = #{grade},</if>
+            <if test="withdrawPassword != null">withdraw_password = #{withdrawPassword},</if>
+            <if test="lastLoginAddress != null">last_login_address = #{lastLoginAddress},</if>
+            <if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTCustomerById" parameterType="Long">
+        delete from t_customer where id = #{id}
+    </delete>
+
+    <delete id="deleteTCustomerByIds" parameterType="String">
+        delete from t_customer where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
