@@ -2,6 +2,7 @@ package com.ruoyi.business.service.impl;
 
 import java.util.List;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,5 +102,12 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
 
         return tCustomerMapper.selectTCustomerByUsername(username);
 
+    }
+
+    @Override
+    public TCustomer selectTCustomerByInviteCode(String inviteCode) {
+        QueryWrapper<TCustomer> wrapper = new QueryWrapper<>();
+        wrapper.eq("invite_code", inviteCode);
+        return this.getOne(wrapper);
     }
 }

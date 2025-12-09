@@ -62,4 +62,6 @@ public interface ITCustomerService extends IService<TCustomer>
     public int deleteTCustomerById(Long id);
 
     TCustomer selectTCustomerByUsername(String username);
+
+    TCustomer selectTCustomerByInviteCode(String inviteCode);
 }

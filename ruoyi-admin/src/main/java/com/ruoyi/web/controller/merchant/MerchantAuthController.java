@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.merchant;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.ruoyi.business.domain.TCustomer;
 import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.common.constant.Constants;
@@ -7,10 +8,13 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginBody;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
+import com.ruoyi.common.utils.Base62;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
 import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.system.service.ISysConfigService;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
@@ -40,6 +44,9 @@ public class MerchantAuthController extends BaseController
 
     @Value("${ruoyi.name}")
     private String projectName;
+
+    @Autowired
+    private SnowflakeKeyGenerator snowflakeKeyGenerator;
 
     /**
      * 商户登录方法
@@ -79,19 +86,18 @@ public class MerchantAuthController extends BaseController
     @PostMapping("/register")
     public AjaxResult register(@RequestBody @Validated MerchantRegisterBody registerBody)
     {
-        // 检查是否开启商户注册功能
-        if (!("true".equals(configService.selectConfigByKey("sys.account.registerMerchant"))))
-        {
-            return error("当前系统没有开启商户注册功能！");
-        }
-
         // 验证用户名是否已存在
         TCustomer existCustomer = customerService.selectTCustomerByUsername(registerBody.getUsername());
         if (existCustomer != null)
         {
             return error("注册失败，用户名已存在");
         }
-
+        // 查看邀请码是否已存在
+//        TCustomer existInviteCode = customerService.selectTCustomerByInviteCode(registerBody.getInviteCode());
+//        if (existInviteCode == null)
+//        {
+//            return error("注册失败，邀请码不存在");
+//        }
 
         // 创建商户账号
         TCustomer customer = new TCustomer();
@@ -104,6 +110,15 @@ public class MerchantAuthController extends BaseController
         customer.setLockBalance(BigDecimal.ZERO);
         customer.setStatus(0); // 0-正常 1-禁用
         customer.setGrade(1);
+
+
+        long id = snowflakeKeyGenerator.generateKey();   // 雪花算法 64-bit
+        String code = Base62.encode(id);
+        //随机全局生成唯一邀请码
+        customer.setInviteCode(code);
+
+
+
         try
         {
             int result = customerService.insertTCustomer(customer);
@@ -152,6 +167,7 @@ public class MerchantAuthController extends BaseController
      * 商户注册请求体
      */
     @Validated
+    @Data
     public static class MerchantRegisterBody
     {
         /**
@@ -183,6 +199,8 @@ public class MerchantAuthController extends BaseController
          * 手机号
          */
         private String phone;
+
+        private String inviteCode;
 
         public String getUsername()
         {

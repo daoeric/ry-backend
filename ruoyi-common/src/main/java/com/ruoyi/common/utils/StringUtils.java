@@ -1,11 +1,7 @@
 package com.ruoyi.common.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import org.springframework.util.AntPathMatcher;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.core.text.StrFormatter;
@@ -678,6 +674,22 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
             {
                 sb.append(c);
             }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 随机生成i位字符串
+     * @param i
+     * @return
+     */
+    public static String getRandomString(int i) {
+        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        for (int j = 0; j < i; j++) {
+            int number = random.nextInt(base.length());
+            sb.append(base.charAt(number));
         }
         return sb.toString();
     }
