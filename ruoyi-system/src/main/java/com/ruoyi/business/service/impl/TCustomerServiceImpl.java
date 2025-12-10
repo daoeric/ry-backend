@@ -106,8 +106,7 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
 
     @Override
     public TCustomer selectTCustomerByInviteCode(String inviteCode) {
-        QueryWrapper<TCustomer> wrapper = new QueryWrapper<>();
-        wrapper.eq("invite_code", inviteCode);
-        return this.getOne(wrapper);
+        TCustomer tCustomer = tCustomerMapper.selectOneByInviteCode(inviteCode);
+        return tCustomer;
     }
 }

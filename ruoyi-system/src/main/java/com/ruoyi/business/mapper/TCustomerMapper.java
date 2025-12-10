@@ -66,4 +66,7 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
 
     @Select("select * from t_customer where username = #{username}")
     TCustomer selectTCustomerByUsername(@Param("username") String username);
+
+    @Select("select * from t_customer where invite_code = #{inviteCode} limit 1")
+    TCustomer selectOneByInviteCode(@Param("inviteCode") String inviteCode);
 }
