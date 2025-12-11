@@ -13,6 +13,7 @@ import com.ruoyi.common.utils.Base62;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
+import com.ruoyi.framework.web.service.MerchantLoginService;
 import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.system.service.ISysConfigService;
 import lombok.Data;
@@ -35,7 +36,7 @@ import java.math.BigDecimal;
 public class MerchantAuthController extends BaseController
 {
     @Autowired
-    private SysLoginService loginService;
+    private MerchantLoginService loginService;
 
     @Autowired
     private ITCustomerService customerService;
@@ -60,19 +61,17 @@ public class MerchantAuthController extends BaseController
     {
         AjaxResult ajax = AjaxResult.success();
         // 生成令牌
-        LoginMerchantUser loginUser = (LoginMerchantUser) loginService.login(
-                loginBody.getUsername(), 
-                loginBody.getPassword(), 
-                loginBody.getCode(),
-                loginBody.getUuid()
+        LoginMerchantUser loginUser = loginService.login(
+                loginBody.getUsername(),
+                loginBody.getPassword()
         );
-        
+
         // 判断是否需要返回谷歌验证码
-        if(StringUtils.isEmpty(loginBody.getCode())){
-            ajax.put("safeMode", loginUser.getLastLoginTime() == null ? 0 : 1);
-            ajax.put("googleCode", "otpauth://totp/" + projectName + "@" + loginUser.getUsername() 
-                    + "?secret=" + loginUser.getGoogleCode());
-        }
+//        if(StringUtils.isEmpty(loginBody.getCode())){
+//            ajax.put("safeMode", loginUser.getLastLoginTime() == null ? 0 : 1);
+//            ajax.put("googleCode", "otpauth://totp/" + projectName + "@" + loginUser.getUsername()
+//                    + "?secret=" + loginUser.getGoogleCode());
+//        }
         
         ajax.put(Constants.TOKEN, loginUser.getToken());
         return ajax;
