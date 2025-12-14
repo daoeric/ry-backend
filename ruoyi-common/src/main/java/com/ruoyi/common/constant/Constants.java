@@ -179,4 +179,5 @@ public class Constants
     public static final String RUJIN_CODE = "A999";
 
     public static final String DAIFU_CODE = "A888";
+    public static final String SYSTEM = "SYSTEM";
 }

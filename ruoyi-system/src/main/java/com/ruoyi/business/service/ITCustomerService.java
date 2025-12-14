@@ -1,9 +1,11 @@
 package com.ruoyi.business.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.business.domain.TCustomer;
+import com.ruoyi.common.enums.BillOperateTypeEnum;
 
 /**
  * 用户管理Service接口
@@ -64,4 +66,6 @@ public interface ITCustomerService extends IService<TCustomer>
     TCustomer selectTCustomerByUsername(String username);
 
     TCustomer selectTCustomerByInviteCode(String inviteCode);
+
+    boolean changeBalance(Long userId, BigDecimal rewardAmount, BillOperateTypeEnum billOperateTypeEnum, String orderNo, String 扫码奖励);
 }

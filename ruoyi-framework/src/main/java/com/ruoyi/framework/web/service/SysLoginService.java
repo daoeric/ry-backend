@@ -98,7 +98,7 @@ public class SysLoginService
             AuthenticationContextHolder.clearContext();
         }
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        Date loginDate = loginUser.getUser().getLoginDate();
+        Date loginDate = loginUser.getUser()!= null ? loginUser.getUser().getLoginDate() :null;
         if (loginDate == null && StringUtils.isEmpty(code)) {
             return loginUser;
         }

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.TVipMapper">
+    
+    <resultMap type="TVip" id="TVipResult">
+        <result property="id"    column="id"    />
+        <result property="scanLimit"    column="scan_limit"    />
+        <result property="withdrawLimit"    column="withdraw_limit"    />
+        <result property="minReward"    column="min_reward"    />
+        <result property="maxReward"    column="max_reward"    />
+        <result property="shareCount"    column="share_count"    />
+        <result property="shareReward"    column="share_reward"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTVipVo">
+        select id, scan_limit, withdraw_limit, min_reward, max_reward, share_count, share_reward, create_time, create_by, update_time, update_by, remark from t_vip
+    </sql>
+
+    <select id="selectTVipList" parameterType="TVip" resultMap="TVipResult">
+        <include refid="selectTVipVo"/>
+        <where>  
+            <if test="scanLimit != null "> and scan_limit = #{scanLimit}</if>
+            <if test="withdrawLimit != null "> and withdraw_limit = #{withdrawLimit}</if>
+            <if test="minReward != null "> and min_reward = #{minReward}</if>
+            <if test="maxReward != null "> and max_reward = #{maxReward}</if>
+            <if test="shareCount != null "> and share_count = #{shareCount}</if>
+            <if test="shareReward != null "> and share_reward = #{shareReward}</if>
+        </where>
+    </select>
+    
+    <select id="selectTVipById" parameterType="Integer" resultMap="TVipResult">
+        <include refid="selectTVipVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTVip" parameterType="TVip" useGeneratedKeys="true" keyProperty="id">
+        insert into t_vip
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="scanLimit != null">scan_limit,</if>
+            <if test="withdrawLimit != null">withdraw_limit,</if>
+            <if test="minReward != null">min_reward,</if>
+            <if test="maxReward != null">max_reward,</if>
+            <if test="shareCount != null">share_count,</if>
+            <if test="shareReward != null">share_reward,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="scanLimit != null">#{scanLimit},</if>
+            <if test="withdrawLimit != null">#{withdrawLimit},</if>
+            <if test="minReward != null">#{minReward},</if>
+            <if test="maxReward != null">#{maxReward},</if>
+            <if test="shareCount != null">#{shareCount},</if>
+            <if test="shareReward != null">#{shareReward},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTVip" parameterType="TVip">
+        update t_vip
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="scanLimit != null">scan_limit = #{scanLimit},</if>
+            <if test="withdrawLimit != null">withdraw_limit = #{withdrawLimit},</if>
+            <if test="minReward != null">min_reward = #{minReward},</if>
+            <if test="maxReward != null">max_reward = #{maxReward},</if>
+            <if test="shareCount != null">share_count = #{shareCount},</if>
+            <if test="shareReward != null">share_reward = #{shareReward},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTVipById" parameterType="Integer">
+        delete from t_vip where id = #{id}
+    </delete>
+
+    <delete id="deleteTVipByIds" parameterType="String">
+        delete from t_vip where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

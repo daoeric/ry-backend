@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.TScanOrderMapper">
+    
+    <resultMap type="TScanOrder" id="TScanOrderResult">
+        <result property="orderNo"    column="order_no"    />
+        <result property="customerId"    column="customer_id"    />
+        <result property="username"    column="username"    />
+        <result property="barcode"    column="barcode"    />
+        <result property="rewardAmount"    column="reward_amount"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectTScanOrderVo">
+        select order_no, customer_id, username, barcode, reward_amount, create_time, status from t_scan_order
+    </sql>
+
+    <select id="selectTScanOrderList" parameterType="TScanOrder" resultMap="TScanOrderResult">
+        <include refid="selectTScanOrderVo"/>
+        <where>  
+            <if test="customerId != null "> and customer_id = #{customerId}</if>
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="barcode != null  and barcode != ''"> and barcode = #{barcode}</if>
+            <if test="rewardAmount != null "> and reward_amount = #{rewardAmount}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+    
+    <select id="selectTScanOrderByOrderNo" parameterType="String" resultMap="TScanOrderResult">
+        <include refid="selectTScanOrderVo"/>
+        where order_no = #{orderNo}
+    </select>
+        
+    <insert id="insertTScanOrder" parameterType="TScanOrder">
+        insert into t_scan_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderNo != null">order_no,</if>
+            <if test="customerId != null">customer_id,</if>
+            <if test="username != null">username,</if>
+            <if test="barcode != null">barcode,</if>
+            <if test="rewardAmount != null">reward_amount,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderNo != null">#{orderNo},</if>
+            <if test="customerId != null">#{customerId},</if>
+            <if test="username != null">#{username},</if>
+            <if test="barcode != null">#{barcode},</if>
+            <if test="rewardAmount != null">#{rewardAmount},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTScanOrder" parameterType="TScanOrder">
+        update t_scan_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="customerId != null">customer_id = #{customerId},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="barcode != null">barcode = #{barcode},</if>
+            <if test="rewardAmount != null">reward_amount = #{rewardAmount},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where order_no = #{orderNo}
+    </update>
+
+    <delete id="deleteTScanOrderByOrderNo" parameterType="String">
+        delete from t_scan_order where order_no = #{orderNo}
+    </delete>
+
+    <delete id="deleteTScanOrderByOrderNos" parameterType="String">
+        delete from t_scan_order where order_no in 
+        <foreach item="orderNo" collection="array" open="(" separator="," close=")">
+            #{orderNo}
+        </foreach>
+    </delete>
+</mapper>

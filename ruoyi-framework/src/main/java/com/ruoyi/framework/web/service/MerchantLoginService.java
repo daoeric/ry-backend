@@ -3,105 +3,188 @@ package com.ruoyi.framework.web.service;
 import com.ruoyi.business.domain.TCustomer;
 import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.common.constant.CacheConstants;
+import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.constant.UserConstants;
+import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.redis.RedisCache;
-import com.ruoyi.common.exception.base.BaseException;
+import com.ruoyi.common.enums.ExceptionEnum;
+import com.ruoyi.common.exception.CustomException;
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.exception.user.*;
 import com.ruoyi.common.utils.DateUtils;
-import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.common.utils.bean.BeanUtils;
+import com.ruoyi.common.utils.MessageUtils;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.google.GoogleAuthenticator;
 import com.ruoyi.common.utils.ip.IpUtils;
-import com.ruoyi.common.utils.uuid.IdUtils;
+import com.ruoyi.framework.manager.AsyncManager;
+import com.ruoyi.framework.manager.factory.AsyncFactory;
+import com.ruoyi.framework.security.context.AuthenticationContextHolder;
+import com.ruoyi.system.service.ISysConfigService;
+import com.ruoyi.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.TimeUnit;
+import javax.annotation.Resource;
+import java.util.Date;
 
 /**
- * 登录校验
+ * 登录校验方法
+ * 
+ * @author ruoyi
  */
 @Component
-public class MerchantLoginService {
+public class MerchantLoginService
+{
+    @Autowired
+    private TokenService tokenService;
+
+    @Resource
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private RedisCache redisCache;
+    
+    @Autowired
+    private ISysUserService userService;
+
+    @Autowired
+    private ISysConfigService configService;
 
     @Autowired
     private ITCustomerService customerService;
 
-    @Autowired
-    private RedisCache redisCache;
-
-    @Value(value = "${user.password.maxRetryCount}")
-    private int maxRetryCount;
-
-    @Value(value = "${user.password.lockTime}")
-    private int lockTime;
-
-
-    public LoginMerchantUser login(String username, String password){
-        //验证用户名是否存在
+    /**
+     * 登录验证
+     * 
+     * @param username 用户名
+     * @param password 密码
+     * @return 结果
+     */
+    public LoginMerchantUser login(String username, String password)
+    {
+        // 登录前置校验
+        loginPreCheck(username, password);
+        // 用户验证
+        Authentication authentication = null;
+        try
+        {
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+            AuthenticationContextHolder.setContext(authenticationToken);
+            // 该方法会去调用UserDetailsServiceImpl.loadUserByUsername
+            authentication = authenticationManager.authenticate(authenticationToken);
+        }
+        catch (Exception e)
+        {
+            if (e instanceof BadCredentialsException)
+            {
+                AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.password.not.match")));
+                throw new UserPasswordNotMatchException();
+            }
+            else
+            {
+                AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, e.getMessage()));
+                throw new ServiceException(e.getMessage());
+            }
+        }
+        finally
+        {
+            AuthenticationContextHolder.clearContext();
+        }
+        LoginMerchantUser loginUser = (LoginMerchantUser) authentication.getPrincipal();
         TCustomer customer = customerService.selectTCustomerByUsername(username);
-        if (customer == null){
-            throw new BaseException("用户名错误");
+        recordLoginInfo(loginUser.getUserId());
+        AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
+        // 生成token
+        String token = tokenService.createToken(loginUser);
+        loginUser.setToken(token);
+        loginUser.setUsername(customer.getUsername());
+        loginUser.setLastLoginTime(customer.getLastLoginTime());
+        loginUser.setToken(tokenService.createToken(loginUser));
+        return loginUser;
+    }
+
+    /**
+     * 校验验证码
+     * 
+     * @param username 用户名
+     * @param code 验证码
+     * @param uuid 唯一标识
+     * @return 结果
+     */
+    public void validateCaptcha(String username, String code, String uuid)
+    {
+        boolean captchaEnabled = configService.selectCaptchaEnabled();
+        if (captchaEnabled)
+        {
+            String verifyKey = CacheConstants.CAPTCHA_CODE_KEY + StringUtils.nvl(uuid, "");
+            String captcha = redisCache.getCacheObject(verifyKey);
+            redisCache.deleteObject(verifyKey);
+            if (captcha == null)
+            {
+                AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire")));
+                throw new CaptchaExpireException();
+            }
+            if (!code.equalsIgnoreCase(captcha))
+            {
+                AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.error")));
+                throw new CaptchaException();
+            }
         }
-        //密码错误校验
-        validatePasswordRetry(customer, password);
-        if (customer.getStatus().equals(1)){
-            throw new BaseException("账户已停用");
+    }
+
+    /**
+     * 登录前置校验
+     * @param username 用户名
+     * @param password 用户密码
+     */
+    public void loginPreCheck(String username, String password)
+    {
+        // 用户名或密码为空 错误
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))
+        {
+            AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("not.null")));
+            throw new UserNotExistsException();
         }
-        //记录登录信息
-        recordLoginInfo(customer.getId());
-        LoginMerchantUser loginMerchantUser = new LoginMerchantUser();
-        BeanUtils.copyBeanProp(loginMerchantUser,customer);
-        //生成token
-        loginMerchantUser.setToken("customer:token:" + IdUtils.fastUUID());
-        //根据token缓存loginMerchantUser
-        redisCache.setCacheObject(loginMerchantUser.getToken(),loginMerchantUser,1, TimeUnit.DAYS);
-        return loginMerchantUser;
+        // 密码如果不在指定范围内 错误
+        if (password.length() < UserConstants.PASSWORD_MIN_LENGTH
+                || password.length() > UserConstants.PASSWORD_MAX_LENGTH)
+        {
+            AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.password.not.match")));
+            throw new UserPasswordNotMatchException();
+        }
+        // 用户名不在指定范围内 错误
+        if (username.length() < UserConstants.USERNAME_MIN_LENGTH
+                || username.length() > UserConstants.USERNAME_MAX_LENGTH)
+        {
+            AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.password.not.match")));
+            throw new UserPasswordNotMatchException();
+        }
+        // IP黑名单校验
+        String blackStr = configService.selectConfigByKey("sys.login.blackIPList");
+        if (IpUtils.isMatchedIp(blackStr, IpUtils.getIpAddr()))
+        {
+            AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("login.blocked")));
+            throw new BlackListException();
+        }
     }
 
     /**
      * 记录登录信息
-     * @param id
+     *
+     * @param userId 用户ID
      */
-    public void recordLoginInfo(Long id){
-        TCustomer tCustomer = new TCustomer();
-        tCustomer.setId(id);
-        tCustomer.setLastLoginAddress(IpUtils.getIpAddr());
-        tCustomer.setLastLoginTime(DateUtils.getNowDate());
-        customerService.updateTCustomer(tCustomer);
-    }
-
-    /**
-     * 校验密码错误次数，超过限制锁定一定时间
-     */
-    private void validatePasswordRetry(TCustomer customer, String rawPassword) {
-        String username = customer.getUsername();
-        Integer retryCount = redisCache.getCacheObject(getCacheKey(username));
-        if (retryCount == null) {
-            retryCount = 0;
-        }
-        if (retryCount >= Integer.valueOf(maxRetryCount)) {
-            throw new BaseException("密码错误次数过多，账户已锁定" + lockTime + "分钟");
-        }
-
-        if (!SecurityUtils.matchesPassword(rawPassword, customer.getPassword())) {
-            retryCount = retryCount + 1;
-            redisCache.setCacheObject(getCacheKey(username), retryCount, lockTime, TimeUnit.MINUTES);
-            int remain = Math.max(maxRetryCount - retryCount, 0);
-            if (remain == 0) {
-                throw new BaseException("密码错误次数过多，账户已锁定" + lockTime + "分钟");
-            }
-            throw new BaseException("密码错误，还剩" + remain + "次机会");
-        }
-        clearLoginRecordCache(username);
-    }
-
-    private String getCacheKey(String username) {
-        return CacheConstants.PWD_ERR_CNT_KEY + username;
-    }
-
-    private void clearLoginRecordCache(String username) {
-        if (redisCache.hasKey(getCacheKey(username))) {
-            redisCache.deleteObject(getCacheKey(username));
-        }
+    public void recordLoginInfo(Long userId)
+    {
+        SysUser sysUser = new SysUser();
+        sysUser.setUserId(userId);
+        sysUser.setLoginIp(IpUtils.getIpAddr());
+        sysUser.setLoginDate(DateUtils.getNowDate());
+        userService.updateUserProfile(sysUser);
     }
 }

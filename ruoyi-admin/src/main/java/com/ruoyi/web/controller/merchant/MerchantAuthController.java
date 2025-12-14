@@ -1,6 +1,5 @@
 package com.ruoyi.web.controller.merchant;
 
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.ruoyi.business.domain.TCustomer;
 import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.common.constant.Constants;
@@ -8,13 +7,10 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginBody;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
-import com.ruoyi.common.core.domain.model.MerchantRegisterBody;
 import com.ruoyi.common.utils.Base62;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
 import com.ruoyi.framework.web.service.MerchantLoginService;
-import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.system.service.ISysConfigService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +40,6 @@ public class MerchantAuthController extends BaseController
     @Autowired
     private ISysConfigService configService;
 
-    @Value("${ruoyi.name}")
-    private String projectName;
-
     @Autowired
     private SnowflakeKeyGenerator snowflakeKeyGenerator;
 
@@ -65,14 +58,7 @@ public class MerchantAuthController extends BaseController
                 loginBody.getUsername(),
                 loginBody.getPassword()
         );
-
-        // 判断是否需要返回谷歌验证码
-//        if(StringUtils.isEmpty(loginBody.getCode())){
-//            ajax.put("safeMode", loginUser.getLastLoginTime() == null ? 0 : 1);
-//            ajax.put("googleCode", "otpauth://totp/" + projectName + "@" + loginUser.getUsername()
-//                    + "?secret=" + loginUser.getGoogleCode());
-//        }
-        
+        ajax.put("username",loginBody.getUsername());
         ajax.put(Constants.TOKEN, loginUser.getToken());
         return ajax;
     }
@@ -108,7 +94,7 @@ public class MerchantAuthController extends BaseController
         customer.setUsername(registerBody.getUsername());
         customer.setPassword(SecurityUtils.encryptPassword(registerBody.getPassword()));
         //设置邀请人id
-        customer.setpId(existInviteCode.getId());
+        customer.setPId(existInviteCode.getId());
         // 初始化默认值
         customer.setBalance(BigDecimal.ZERO);
         customer.setLockBalance(BigDecimal.ZERO);

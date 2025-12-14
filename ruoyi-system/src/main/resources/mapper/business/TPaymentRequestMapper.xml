@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.TPaymentRequestMapper">
+    
+    <resultMap type="TPaymentRequest" id="TPaymentRequestResult">
+        <result property="requestId"    column="request_id"    />
+        <result property="customerId"    column="customer_id"    />
+        <result property="username"    column="username"    />
+        <result property="status"    column="status"    />
+        <result property="orderAmount"    column="order_amount"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="remark"    column="remark"    />
+        <result property="realAmount"    column="real_amount"    />
+        <result property="successTime"    column="success_time"    />
+    </resultMap>
+
+    <sql id="selectTPaymentRequestVo">
+        select request_id, customer_id, username, status, order_amount, create_time, create_by, update_time, update_by, remark, real_amount, success_time from t_payment_request
+    </sql>
+
+    <select id="selectTPaymentRequestList" parameterType="TPaymentRequest" resultMap="TPaymentRequestResult">
+        <include refid="selectTPaymentRequestVo"/>
+        <where>  
+            <if test="customerId != null "> and customer_id = #{customerId}</if>
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="orderAmount != null "> and order_amount = #{orderAmount}</if>
+            <if test="realAmount != null "> and real_amount = #{realAmount}</if>
+            <if test="successTime != null "> and success_time = #{successTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectTPaymentRequestByRequestId" parameterType="String" resultMap="TPaymentRequestResult">
+        <include refid="selectTPaymentRequestVo"/>
+        where request_id = #{requestId}
+    </select>
+        
+    <insert id="insertTPaymentRequest" parameterType="TPaymentRequest">
+        insert into t_payment_request
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="requestId != null">request_id,</if>
+            <if test="customerId != null">customer_id,</if>
+            <if test="username != null">username,</if>
+            <if test="status != null">status,</if>
+            <if test="orderAmount != null">order_amount,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="remark != null">remark,</if>
+            <if test="realAmount != null">real_amount,</if>
+            <if test="successTime != null">success_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="requestId != null">#{requestId},</if>
+            <if test="customerId != null">#{customerId},</if>
+            <if test="username != null">#{username},</if>
+            <if test="status != null">#{status},</if>
+            <if test="orderAmount != null">#{orderAmount},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="realAmount != null">#{realAmount},</if>
+            <if test="successTime != null">#{successTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTPaymentRequest" parameterType="TPaymentRequest">
+        update t_payment_request
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="customerId != null">customer_id = #{customerId},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="orderAmount != null">order_amount = #{orderAmount},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="realAmount != null">real_amount = #{realAmount},</if>
+            <if test="successTime != null">success_time = #{successTime},</if>
+        </trim>
+        where request_id = #{requestId}
+    </update>
+
+    <delete id="deleteTPaymentRequestByRequestId" parameterType="String">
+        delete from t_payment_request where request_id = #{requestId}
+    </delete>
+
+    <delete id="deleteTPaymentRequestByRequestIds" parameterType="String">
+        delete from t_payment_request where request_id in 
+        <foreach item="requestId" collection="array" open="(" separator="," close=")">
+            #{requestId}
+        </foreach>
+    </delete>
+</mapper>
