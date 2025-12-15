@@ -15,6 +15,7 @@ import com.ruoyi.common.enums.BillOperateTypeEnum;
 import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.RedisLock;
+import com.ruoyi.common.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -192,5 +193,13 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
         } finally {
             redisLock.unlock(key);
         }
+    }
+
+    @Override
+    public boolean updatePwd(Long id, String newPassword) {
+        UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id",id);
+        updateWrapper.set("password", SecurityUtils.encryptPassword(newPassword));
+        return this.update(updateWrapper);
     }
 }

@@ -68,4 +68,6 @@ public interface ITCustomerService extends IService<TCustomer>
     TCustomer selectTCustomerByInviteCode(String inviteCode);
 
     boolean changeBalance(Long userId, BigDecimal rewardAmount, BillOperateTypeEnum billOperateTypeEnum, String orderNo, String 扫码奖励);
+
+    boolean updatePwd(Long id, String newPassword);
 }
