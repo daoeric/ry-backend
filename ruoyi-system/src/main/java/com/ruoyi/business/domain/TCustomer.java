@@ -70,11 +70,12 @@ public class TCustomer
     @Excel(name = "0正常 1启用")
     private Integer status;
 
+    /** 实名认证状态：0-未认证，1-待审核，2-已认证 */
+    @Excel(name = "实名认证状态：0-未认证，1-待审核，2-已认证")
+    private Integer realnameStatus = 0;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
-
-    /** 更新者 */
-//    private String updateBy;
 
     /** 更新时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

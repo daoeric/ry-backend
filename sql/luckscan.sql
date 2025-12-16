@@ -1141,6 +1141,7 @@ CREATE TABLE `t_customer` (
                               `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
                               `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                               `status` tinyint(1) DEFAULT '0' COMMENT '0正常 1启用',
+                              `realname_status` tinyint(1) DEFAULT '0' COMMENT '实名认证状态：0-未认证，1-待审核，2-已认证',
                               PRIMARY KEY (`id`),
                               UNIQUE KEY `invite_code` (`invite_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
@@ -1164,16 +1165,52 @@ CREATE TABLE `t_payment_request` (
                                      `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                      `create_by` varchar(32) DEFAULT NULL COMMENT '创建人',
                                      `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                     `update_by` varchar(32) DEFAULT NULL COMMENT '更新人',
-                                     `remark` varchar(64) DEFAULT NULL COMMENT '备注',
-                                     `real_amount` decimal(12,2) DEFAULT NULL COMMENT '真实金额',
-                                     `success_time` timestamp NULL DEFAULT NULL COMMENT '成功时间',
                                      PRIMARY KEY (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
--- Records of t_payment_request
+-- Table structure for t_withdraw_request
 -- ----------------------------
+DROP TABLE IF EXISTS `t_withdraw_request`;
+CREATE TABLE `t_withdraw_request` (
+  `withdraw_id` varchar(32) NOT NULL,
+  `withdraw_amount` decimal(12,2) DEFAULT NULL COMMENT '提现金额',
+  `customer_id` bigint(20) DEFAULT NULL COMMENT '商户号',
+  `username` varchar(64) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT '0' COMMENT '状态',
+  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_by` varchar(32) DEFAULT NULL COMMENT '创建人',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `update_by` varchar(32) DEFAULT NULL COMMENT '修改人',
+  `real_amount` decimal(12,2) DEFAULT NULL COMMENT '真实金额',
+  `remark` varchar(128) DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (`withdraw_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of t_withdraw_request
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for t_realname_auth
+-- ----------------------------
+DROP TABLE IF EXISTS `t_realname_auth`;
+CREATE TABLE `t_realname_auth` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `customer_id` bigint(20) NOT NULL COMMENT '商户ID',
+  `real_name` varchar(50) NOT NULL COMMENT '真实姓名',
+  `id_card_front` varchar(255) NOT NULL COMMENT '身份证正面图片URL',
+  `id_card_back` varchar(255) NOT NULL COMMENT '身份证反面图片URL',
+  `status` tinyint(1) DEFAULT '0' COMMENT '状态：0-待审核，1-审核通过，2-审核拒绝',
+  `audit_reason` varchar(255) DEFAULT NULL COMMENT '审核原因',
+  `audit_time` timestamp NULL DEFAULT NULL COMMENT '审核时间',
+  `audit_by` varchar(32) DEFAULT NULL COMMENT '审核人',
+  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_customer_id` (`customer_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='实名认证表';
 
 -- ----------------------------
 -- Table structure for t_scan_order

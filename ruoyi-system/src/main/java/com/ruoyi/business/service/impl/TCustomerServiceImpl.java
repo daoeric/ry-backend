@@ -194,12 +194,20 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
             redisLock.unlock(key);
         }
     }
-
+    
     @Override
     public boolean updatePwd(Long id, String newPassword) {
         UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id",id);
         updateWrapper.set("password", SecurityUtils.encryptPassword(newPassword));
+        return this.update(updateWrapper);
+    }
+    
+    @Override
+    public boolean updateRealnameStatus(Long id, Integer realnameStatus) {
+        UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", id);
+        updateWrapper.set("realname_status", realnameStatus);
         return this.update(updateWrapper);
     }
 }
