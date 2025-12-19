@@ -10,6 +10,7 @@ import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.business.service.ITScanOrderService;
 import com.ruoyi.business.service.ITVipService;
 import com.ruoyi.common.enums.BillOperateTypeEnum;
+import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,6 +123,15 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
         TVip vip = vipService.getById(grade);
         BigDecimal minReward = vip.getMinReward();
         BigDecimal maxReward = vip.getMaxReward();
+        // 扫码校址次数
+        Integer scanLimit = vip.getScanLimit();
+        //查看用户是否超过扫码限制
+        Long scanCount = this.countScanCount(userId);
+        scanCount = scanCount == null?0:scanCount;
+        if (scanCount >= scanLimit) {
+            throw new CustomException("Scan limit "+scanCount+" times");
+        }
+
         //根据最小奖励金额和最大奖励金额之间随机一个金额
         BigDecimal rewardAmount = minReward.add(maxReward.subtract(minReward).multiply(new BigDecimal(Math.random())));
         //构建TScanOrder对象
@@ -148,6 +158,13 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
         QueryWrapper<TScanOrder> wrapper = new QueryWrapper<>();
         wrapper.eq("barcode",barcode);
         return this.getOne(wrapper);
+    }
+
+    @Override
+    public Long countScanCount(Long userId) {
+        QueryWrapper<TScanOrder> wrapper = new QueryWrapper<>();
+        wrapper.eq("customer_id",userId);
+        return this.count(wrapper);
     }
 
 }

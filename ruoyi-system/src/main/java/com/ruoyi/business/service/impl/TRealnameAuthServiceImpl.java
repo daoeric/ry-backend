@@ -3,13 +3,17 @@ package com.ruoyi.business.service.impl;
 import java.util.Date;
 import java.util.List;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.ruoyi.business.domain.TCustomer;
+import com.ruoyi.business.service.ITCustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.business.mapper.TRealnameAuthMapper;
 import com.ruoyi.business.domain.TRealnameAuth;
 import com.ruoyi.business.service.ITRealnameAuthService;
 import com.ruoyi.common.utils.DateUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 实名认证Service业务层处理
@@ -22,6 +26,9 @@ public class TRealnameAuthServiceImpl extends ServiceImpl<TRealnameAuthMapper, T
 {
     @Autowired
     private TRealnameAuthMapper tRealnameAuthMapper;
+
+    @Autowired
+    private ITCustomerService tCustomerService;
 
     /**
      * 查询实名认证
@@ -107,5 +114,22 @@ public class TRealnameAuthServiceImpl extends ServiceImpl<TRealnameAuthMapper, T
     public TRealnameAuth selectByCustomerId(Long customerId)
     {
         return tRealnameAuthMapper.selectByCustomerId(customerId);
+    }
+
+    @Override
+    @Transactional
+    public boolean approve(Long id, int status, String auditReason) {
+        UpdateWrapper<TRealnameAuth> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", id);
+        updateWrapper.set("status", status);
+        updateWrapper.set("audit_reason", auditReason);
+        boolean result = this.update(updateWrapper);
+        if (result) {
+            UpdateWrapper<TCustomer> updateWrapper1 = new UpdateWrapper<>();
+            updateWrapper1.eq("id", tRealnameAuthMapper.selectById(id).getCustomerId());
+            updateWrapper1.set("realname_status", status);
+            return tCustomerService.update(updateWrapper1);
+        }
+        return result;
     }
 }

@@ -65,4 +65,6 @@ public interface ITScanOrderService extends IService<TScanOrder>
 
 
     TScanOrder selectTScanOrderByBarcode(String barcode);
+
+    Long countScanCount(Long userId);
 }

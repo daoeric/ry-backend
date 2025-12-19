@@ -101,4 +101,24 @@ public class TRealnameAuthController extends BaseController
     {
         return toAjax(tRealnameAuthService.deleteTRealnameAuthByIds(ids));
     }
+
+    @PreAuthorize("@ss.hasPermi('business:auth:edit')")
+    @Log(title = "实名认证审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/approve")
+    public AjaxResult approve(@RequestBody TRealnameAuth tRealnameAuth)
+    {
+        boolean result = tRealnameAuthService.approve(tRealnameAuth.getId(), 1, tRealnameAuth.getAuditReason());
+        return AjaxResult.success(result);
+    }
+
+    @PreAuthorize("@ss.hasPermi('business:auth:edit')")
+    @Log(title = "实名认证审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/reject")
+    public AjaxResult reject(@RequestBody TRealnameAuth tRealnameAuth)
+    {
+        boolean result = tRealnameAuthService.approve(tRealnameAuth.getId(), 2 ,tRealnameAuth.getAuditReason());
+        return AjaxResult.success(result);
+    }
+
+
 }

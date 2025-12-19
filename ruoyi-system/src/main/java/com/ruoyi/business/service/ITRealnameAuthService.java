@@ -68,4 +68,6 @@ public interface ITRealnameAuthService extends IService<TRealnameAuth>
      * @return 实名认证记录
      */
     public TRealnameAuth selectByCustomerId(Long customerId);
+
+    boolean approve(Long id, int i, String auditReason);
 }
