@@ -127,7 +127,7 @@ public class TRealnameAuthServiceImpl extends ServiceImpl<TRealnameAuthMapper, T
         if (result) {
             UpdateWrapper<TCustomer> updateWrapper1 = new UpdateWrapper<>();
             updateWrapper1.eq("id", tRealnameAuthMapper.selectById(id).getCustomerId());
-            updateWrapper1.set("realname_status", status);
+            updateWrapper1.set("realname_status", status==1?2:3);
             return tCustomerService.update(updateWrapper1);
         }
         return result;
