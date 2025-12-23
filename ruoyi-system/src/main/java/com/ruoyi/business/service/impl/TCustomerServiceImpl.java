@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.business.domain.TCreditLog;
 import com.ruoyi.business.service.ITCreditLogService;
+import com.ruoyi.business.service.ITMerchantMessageService;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.enums.BillOperateTypeEnum;
 import com.ruoyi.common.exception.CustomException;
@@ -209,5 +210,15 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
         updateWrapper.eq("id", id);
         updateWrapper.set("realname_status", realnameStatus);
         return this.update(updateWrapper);
+    }
+    
+    @Override
+    public List<Long> selectAllCustomerIds() {
+        return tCustomerMapper.selectAllCustomerIds();
+    }
+    
+    @Override
+    public boolean sendRewardNotification(Long customerId, java.math.BigDecimal amount, ITMerchantMessageService merchantMessageService) {
+        return merchantMessageService.sendRewardNotification(customerId, amount);
     }
 }

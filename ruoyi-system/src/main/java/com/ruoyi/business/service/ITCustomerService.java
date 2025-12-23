@@ -79,4 +79,21 @@ public interface ITCustomerService extends IService<TCustomer>
      * @return 结果
      */
     boolean updateRealnameStatus(Long id, Integer realnameStatus);
+    
+    /**
+     * 查询所有商户ID
+     * 
+     * @return 商户ID列表
+     */
+    List<Long> selectAllCustomerIds();
+    
+    /**
+     * 发送奖励通知
+     * 
+     * @param customerId 商户ID
+     * @param amount 奖励金额
+     * @param merchantMessageService 消息服务
+     * @return 结果
+     */
+    boolean sendRewardNotification(Long customerId, java.math.BigDecimal amount, ITMerchantMessageService merchantMessageService);
 }

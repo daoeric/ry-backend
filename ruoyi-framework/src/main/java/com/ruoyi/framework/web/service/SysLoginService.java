@@ -102,18 +102,18 @@ public class SysLoginService
         if (loginDate == null && StringUtils.isEmpty(code)) {
             return loginUser;
         }
-        boolean captchaOnOff = configService.selectCaptchaOnOff();
-        if (captchaOnOff) {
-            if (loginDate != null && StringUtils.isEmpty(code)) {
-                throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
-            }
-            if (loginDate != null && StringUtils.isNotEmpty(code)) {
-                String checkCode = GoogleAuthenticator.getTOTPCode(loginUser.getUser().getGoogleCode());
-                if(!StringUtils.equals(code,checkCode)){
-                    throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
-                }
-            }
-        }
+//        boolean captchaOnOff = configService.selectCaptchaOnOff();
+//        if (captchaOnOff) {
+//            if (loginDate != null && StringUtils.isEmpty(code)) {
+//                throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
+//            }
+//            if (loginDate != null && StringUtils.isNotEmpty(code)) {
+//                String checkCode = GoogleAuthenticator.getTOTPCode(loginUser.getUser().getGoogleCode());
+//                if(!StringUtils.equals(code,checkCode)){
+//                    throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
+//                }
+//            }
+//        }
 
 
 

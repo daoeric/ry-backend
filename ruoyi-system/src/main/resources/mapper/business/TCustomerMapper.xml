@@ -129,4 +129,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectOneByInviteCode" parameterType="string" resultMap="TCustomerResult">
         select * from t_customer where invite_code = #{inviteCode} limit 1
     </select>
+    
+    <select id="selectAllCustomerIds" resultType="long">
+        select id from t_customer
+    </select>
 </mapper>

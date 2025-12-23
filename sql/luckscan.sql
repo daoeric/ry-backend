@@ -1213,8 +1213,26 @@ CREATE TABLE `t_realname_auth` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='实名认证表';
 
 -- ----------------------------
--- Table structure for t_scan_order
+-- Table structure for t_merchant_message
 -- ----------------------------
+DROP TABLE IF EXISTS `t_merchant_message`;
+CREATE TABLE `t_merchant_message` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `title` varchar(100) NOT NULL COMMENT '消息标题',
+  `content` text NOT NULL COMMENT '消息内容',
+  `customer_id` bigint(20) DEFAULT NULL COMMENT '商户ID，NULL表示发送给所有商户',
+  `status` tinyint(1) DEFAULT '0' COMMENT '状态：0-未读，1-已读',
+  `type` tinyint(1) DEFAULT '0' COMMENT '消息类型：0-普通消息，1-奖励通知，2-系统通知',
+  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `read_time` timestamp NULL DEFAULT NULL COMMENT '阅读时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_customer_id` (`customer_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商户消息表';
+
+-- ----------------------------
+-- Table structure for t_scan_order
 DROP TABLE IF EXISTS `t_scan_order`;
 CREATE TABLE `t_scan_order` (
                                 `order_no` varchar(32) NOT NULL COMMENT '订单号',

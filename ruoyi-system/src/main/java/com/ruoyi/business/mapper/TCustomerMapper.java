@@ -21,7 +21,7 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
      * @param id 用户管理主键
      * @return 用户管理
      */
-    public TCustomer selectTCustomerById(Long id);
+    TCustomer selectTCustomerById(Long id);
 
     /**
      * 查询用户管理列表
@@ -29,7 +29,7 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
      * @param tCustomer 用户管理
      * @return 用户管理集合
      */
-    public List<TCustomer> selectTCustomerList(TCustomer tCustomer);
+    List<TCustomer> selectTCustomerList(TCustomer tCustomer);
 
     /**
      * 新增用户管理
@@ -37,7 +37,7 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
      * @param tCustomer 用户管理
      * @return 结果
      */
-    public int insertTCustomer(TCustomer tCustomer);
+    int insertTCustomer(TCustomer tCustomer);
 
     /**
      * 修改用户管理
@@ -45,7 +45,7 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
      * @param tCustomer 用户管理
      * @return 结果
      */
-    public int updateTCustomer(TCustomer tCustomer);
+    int updateTCustomer(TCustomer tCustomer);
 
     /**
      * 删除用户管理
@@ -53,7 +53,7 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
      * @param id 用户管理主键
      * @return 结果
      */
-    public int deleteTCustomerById(Long id);
+    int deleteTCustomerById(Long id);
 
     /**
      * 批量删除用户管理
@@ -61,12 +61,16 @@ public interface TCustomerMapper extends BaseMapper<TCustomer>
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */
-    public int deleteTCustomerByIds(Long[] ids);
-
-
-    @Select("select * from t_customer where username = #{username}")
-    TCustomer selectTCustomerByUsername(@Param("username") String username);
-
-    @Select("select * from t_customer where invite_code = #{inviteCode} limit 1")
-    TCustomer selectOneByInviteCode(@Param("inviteCode") String inviteCode);
+    int deleteTCustomerByIds(Long[] ids);
+    
+    TCustomer selectTCustomerByUsername(String username);
+    
+    TCustomer selectOneByInviteCode(String inviteCode);
+    
+    /**
+     * 查询所有商户ID
+     * 
+     * @return 商户ID列表
+     */
+    List<Long> selectAllCustomerIds();
 }
