@@ -67,6 +67,6 @@ public class AdminMessageController extends BaseController
             );
         }
         
-        return result ? AjaxResult.success("消息发送成功") : AjaxResult.error("消息发送失败");
+        return result ? AjaxResult.successByCode("merchant.message.send.success") : AjaxResult.errorByCode("merchant.message.send.error");
     }
 }

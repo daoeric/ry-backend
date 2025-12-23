@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import com.ruoyi.common.constant.HttpStatus;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.MessageUtils;
 
 /**
  * 操作消息提醒
@@ -66,7 +67,7 @@ public class AjaxResult extends HashMap<String, Object>
      */
     public static AjaxResult success()
     {
-        return AjaxResult.success("操作成功");
+        return AjaxResult.success("操作成功", null);
     }
 
     /**
@@ -103,6 +104,29 @@ public class AjaxResult extends HashMap<String, Object>
     }
 
     /**
+     * 返回成功消息 with internationalization support
+     * 
+     * @param code 消息代码
+     * @return 成功消息
+     */
+    public static AjaxResult successByCode(String code)
+    {
+        return AjaxResult.success(MessageUtils.message(code), null);
+    }
+
+    /**
+     * 返回成功消息 with internationalization support
+     * 
+     * @param code 消息代码
+     * @param data 数据对象
+     * @return 成功消息
+     */
+    public static AjaxResult successByCode(String code, Object data)
+    {
+        return AjaxResult.success(MessageUtils.message(code), data);
+    }
+
+    /**
      * 返回警告消息
      *
      * @param msg 返回内容
@@ -126,13 +150,24 @@ public class AjaxResult extends HashMap<String, Object>
     }
 
     /**
+     * 返回警告消息 with internationalization support
+     *
+     * @param code 消息代码
+     * @return 警告消息
+     */
+    public static AjaxResult warnByCode(String code)
+    {
+        return AjaxResult.warn(MessageUtils.message(code), null);
+    }
+
+    /**
      * 返回错误消息
      * 
      * @return 错误消息
      */
     public static AjaxResult error()
     {
-        return AjaxResult.error("操作失败");
+        return AjaxResult.error("操作失败", null);
     }
 
     /**
@@ -156,6 +191,29 @@ public class AjaxResult extends HashMap<String, Object>
     public static AjaxResult error(String msg, Object data)
     {
         return new AjaxResult(HttpStatus.ERROR, msg, data);
+    }
+
+    /**
+     * 返回错误消息 with internationalization support
+     * 
+     * @param code 消息代码
+     * @return 错误消息
+     */
+    public static AjaxResult errorByCode(String code)
+    {
+        return AjaxResult.error(MessageUtils.message(code), null);
+    }
+
+    /**
+     * 返回错误消息 with internationalization support
+     * 
+     * @param code 消息代码
+     * @param data 数据对象
+     * @return 错误消息
+     */
+    public static AjaxResult errorByCode(String code, Object data)
+    {
+        return AjaxResult.error(MessageUtils.message(code), data);
     }
 
     /**

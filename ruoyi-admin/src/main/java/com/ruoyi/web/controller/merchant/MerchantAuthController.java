@@ -74,19 +74,19 @@ public class MerchantAuthController extends BaseController
     {
         //校验密码是否一致
         if (!registerBody.getPassword().equals(registerBody.getConfirmPassword())){
-            return error("两次密码输人不一致");
+            return AjaxResult.errorByCode("merchant.register.password.mismatch");
         }
         // 验证用户名是否已存在
         TCustomer existCustomer = customerService.selectTCustomerByUsername(registerBody.getUsername());
         if (existCustomer != null)
         {
-            return error("注册失败，用户名已存在");
+            return AjaxResult.errorByCode("merchant.register.username.exists");
         }
         // 查看邀请码是否已存在
         TCustomer existInviteCode = customerService.selectTCustomerByInviteCode(registerBody.getInviteCode());
         if (existInviteCode == null)
         {
-            return error("注册失败，邀请码不存在");
+            return AjaxResult.errorByCode("merchant.register.invite.code.not.exists");
         }
 
         // 创建商户账号
@@ -115,17 +115,17 @@ public class MerchantAuthController extends BaseController
             int result = customerService.insertTCustomer(customer);
             if (result > 0)
             {
-                return AjaxResult.success("注册成功");
+                return AjaxResult.successByCode("merchant.register.success");
             }
             else
             {
-                return error("注册失败，请联系系统管理员");
+                return AjaxResult.errorByCode("merchant.register.error");
             }
         }
         catch (Exception e)
         {
             logger.error("商户注册异常", e);
-            return error("注册失败：" + e.getMessage());
+                return AjaxResult.errorByCode("merchant.register.error.detail", e.getMessage());
         }
     }
 
@@ -142,7 +142,7 @@ public class MerchantAuthController extends BaseController
         
         if (customer == null)
         {
-            return error("商户信息不存在");
+            return AjaxResult.errorByCode("merchant.info.not.exists");
         }
         
         // 清除敏感信息
@@ -164,21 +164,21 @@ public class MerchantAuthController extends BaseController
         /**
          * 用户名
          */
-        @NotBlank(message = "用户名不能为空")
-        @Size(min = 6, max = 20, message = "用户名长度必须在6到20个字符之间")
+        @NotBlank(message = "{merchant.register.username.not.blank}")
+        @Size(min = 6, max = 20, message = "{merchant.register.username.length}")
         private String username;
 
         /**
          * 密码
          */
-        @NotBlank(message = "密码不能为空")
-        @Size(min = 6, max = 20, message = "密码长度必须在6到20个字符之间")
+        @NotBlank(message = "{merchant.register.password.not.blank}")
+        @Size(min = 6, max = 20, message = "{merchant.register.password.length}")
         private String password;
 
         /**
          * 确认密码
          */
-        @NotBlank(message = "确认密码不能为空")
+        @NotBlank(message = "{merchant.register.confirm.password.not.blank}")
         private String confirmPassword;
 
         /**
@@ -193,7 +193,7 @@ public class MerchantAuthController extends BaseController
         /**
          * 邀请码
          */
-        @NotBlank(message = "邀请码不能为空")
+        @NotBlank(message = "{merchant.register.invite.code.not.blank}")
         private String inviteCode;
 
         public String getUsername()

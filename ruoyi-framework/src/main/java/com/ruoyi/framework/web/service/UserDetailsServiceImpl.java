@@ -66,12 +66,12 @@ public class UserDetailsServiceImpl implements UserDetailsService
             if (ObjectUtils.isNull(user))
             {
                 log.info("登录用户：{} 不存在.", username);
-                throw new UsernameNotFoundException("登录用户：" + username + " 不存在");
+                throw new UsernameNotFoundException(MessageUtils.message("user.not.exists.detail", username));
             }
             else if (UserStatus.DISABLE.getCode().equals(user.getStatus()+""))
             {
                 log.info("登录用户：{} 已被停用.", username);
-                throw new BaseException("对不起，您的账号：" + username + " 已停用");
+                throw new BaseException(MessageUtils.message("user.account.disabled", username));
             }
             LoginMerchantUser loginFbdUser = new LoginMerchantUser();
             BeanUtils.copyProperties(user,loginFbdUser);

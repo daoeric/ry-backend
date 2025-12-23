@@ -65,7 +65,7 @@ public class MerchantMessageController extends BaseController
     public AjaxResult readMessage(@PathVariable("messageId") Long messageId)
     {
         boolean result = merchantMessageService.markAsRead(messageId);
-        return result ? AjaxResult.success("消息已标记为已读") : AjaxResult.error("标记失败");
+        return result ? AjaxResult.successByCode("merchant.message.read.success") : AjaxResult.errorByCode("merchant.message.read.error");
     }
 
     /**
@@ -77,7 +77,7 @@ public class MerchantMessageController extends BaseController
     {
         LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
         boolean result = merchantMessageService.markAllAsRead(loginUser.getId());
-        return result ? AjaxResult.success("所有消息已标记为已读") : AjaxResult.error("标记失败");
+        return result ? AjaxResult.successByCode("merchant.message.read.all.success") : AjaxResult.errorByCode("merchant.message.read.all.error");
     }
     
     /**
@@ -97,7 +97,7 @@ public class MerchantMessageController extends BaseController
             }
             return AjaxResult.success(message);
         } else {
-            return AjaxResult.error("消息不存在或无权限查看");
+            return AjaxResult.errorByCode("user.not.exists");
         }
     }
 }

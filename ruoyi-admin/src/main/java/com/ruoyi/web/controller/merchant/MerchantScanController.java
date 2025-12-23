@@ -67,7 +67,7 @@ public class MerchantScanController extends BaseController
         } catch (Exception e){
             return AjaxResult.error(e.getMessage());
         }
-        return result!=null?AjaxResult.success(result):AjaxResult.error("操作失败");
+        return result!=null?AjaxResult.success(result):AjaxResult.errorByCode("操作失败");
     }
 
     /**
