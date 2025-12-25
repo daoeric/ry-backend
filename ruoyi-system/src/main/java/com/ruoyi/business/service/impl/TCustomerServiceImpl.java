@@ -77,8 +77,39 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
     @Override
     public int insertTCustomer(TCustomer tCustomer)
     {
+        // 验证邀请码是否为4位数字
+        if (tCustomer.getInviteCode() != null) {
+            if (!isValidFourDigitNumber(tCustomer.getInviteCode())) {
+                throw new IllegalArgumentException("邀请码必须是4位数字");
+            }
+            
+            // 检查邀请码是否已存在
+            if (existsByInviteCode(tCustomer.getInviteCode())) {
+                throw new IllegalArgumentException("邀请码已存在: " + tCustomer.getInviteCode());
+            }
+        }
+        
         tCustomer.setCreateTime(DateUtils.getNowDate());
         return tCustomerMapper.insertTCustomer(tCustomer);
+    }
+    
+    /**
+     * 验证字符串是否为4位数字
+     * @param str 待验证的字符串
+     * @return 是否为4位数字
+     */
+    private boolean isValidFourDigitNumber(String str) {
+        if (str == null || str.length() != 4) {
+            return false;
+        }
+        
+        for (char c : str.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
@@ -220,5 +251,11 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
     @Override
     public boolean sendRewardNotification(Long customerId, java.math.BigDecimal amount, ITMerchantMessageService merchantMessageService) {
         return merchantMessageService.sendRewardNotification(customerId, amount);
+    }
+    
+    @Override
+    public boolean existsByInviteCode(String inviteCode) {
+        TCustomer customer = tCustomerMapper.selectOneByInviteCode(inviteCode);
+        return customer != null;
     }
 }

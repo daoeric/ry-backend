@@ -40,6 +40,14 @@ public interface ITCustomerService extends IService<TCustomer>
     public int insertTCustomer(TCustomer tCustomer);
 
     /**
+     * 检查邀请码是否已存在
+     * 
+     * @param inviteCode 邀请码
+     * @return 是否存在
+     */
+    boolean existsByInviteCode(String inviteCode);
+
+    /**
      * 修改用户管理
      * 
      * @param tCustomer 用户管理

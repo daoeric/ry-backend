@@ -10,6 +10,7 @@ import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.Base62;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
 import com.ruoyi.common.vo.merchant.ScrollerVO;
 import com.ruoyi.framework.web.service.MerchantLoginService;
@@ -91,6 +92,8 @@ public class MerchantAuthController extends BaseController
     @PostMapping("/register")
     public AjaxResult register(@RequestBody @Validated MerchantRegisterBody registerBody)
     {
+        // 创建商户账号
+        TCustomer customer = new TCustomer();
         //校验密码是否一致
         if (!registerBody.getPassword().equals(registerBody.getConfirmPassword())){
             return AjaxResult.errorByCode("merchant.register.password.mismatch");
@@ -102,18 +105,20 @@ public class MerchantAuthController extends BaseController
             return AjaxResult.errorByCode("merchant.register.username.exists");
         }
         // 查看邀请码是否已存在
-        TCustomer existInviteCode = customerService.selectTCustomerByInviteCode(registerBody.getInviteCode());
-        if (existInviteCode == null)
-        {
-            return AjaxResult.errorByCode("merchant.register.invite.code.not.exists");
+        if (StringUtils.isNotEmpty(registerBody.getInviteCode())) {
+            TCustomer existInviteCode = customerService.selectTCustomerByInviteCode(registerBody.getInviteCode());
+            if (existInviteCode == null)
+            {
+                return AjaxResult.errorByCode("merchant.register.invite.code.not.exists");
+            }
+            //设置邀请人id
+            customer.setPId(existInviteCode.getId());
         }
 
-        // 创建商户账号
-        TCustomer customer = new TCustomer();
+
         customer.setUsername(registerBody.getUsername());
         customer.setPassword(SecurityUtils.encryptPassword(registerBody.getPassword()));
-        //设置邀请人id
-        customer.setPId(existInviteCode.getId());
+
         // 初始化默认值
         customer.setBalance(BigDecimal.ZERO);
         customer.setLockBalance(BigDecimal.ZERO);
@@ -121,13 +126,9 @@ public class MerchantAuthController extends BaseController
         customer.setStatus(0); // 0-正常 1-禁用
         customer.setGrade(1);
 
-
-        long id = snowflakeKeyGenerator.generateKey();   // 雪花算法 64-bit
-        String code = Base62.encode(id);
-        //随机全局生成唯一邀请码
-        customer.setInviteCode(code);
-
-
+        // 生成唯一的4位数字邀请码
+        String inviteCode = generateUniqueInviteCode();
+        customer.setInviteCode(inviteCode);
 
         try
         {
@@ -174,6 +175,47 @@ public class MerchantAuthController extends BaseController
     }
 
     /**
+     * 生成唯一的4位数字邀请码
+     * @return 唯一的4位数字邀请码
+     */
+    private String generateUniqueInviteCode() {
+        String inviteCode;
+        int attempts = 0;
+        int maxAttempts = 50; // Limit attempts to avoid performance issues
+        
+        do {
+            // 生成4位随机数字 (1000-9999)
+            int randomNum = 1000 + (int)(Math.random() * 9000);
+            inviteCode = String.valueOf(randomNum);
+            attempts++;
+            
+            if (attempts >= maxAttempts) {
+                // If we've tried too many times, use a more systematic approach
+                // Try sequential codes starting from a random point
+                return generateSequentialInviteCode();
+            }
+        } while (customerService.existsByInviteCode(inviteCode));
+        
+        return inviteCode;
+    }
+    
+    /**
+     * 顺序生成唯一的4位数字邀请码（当随机生成失败时的备用方案）
+     * @return 唯一的4位数字邀请码
+     */
+    private String generateSequentialInviteCode() {
+        // Try codes sequentially from 1000 to 9999 to find an unused one
+        for (int code = 1000; code <= 9999; code++) {
+            String inviteCode = String.valueOf(code);
+            if (!customerService.existsByInviteCode(inviteCode)) {
+                return inviteCode;
+            }
+        }
+        
+        throw new RuntimeException("所有4位数字邀请码都已被使用");
+    }
+
+    /**
      * 商户注册请求体
      */
     @Validated
@@ -188,7 +230,7 @@ public class MerchantAuthController extends BaseController
         private String username;
 
         /**
-         * 密码
+         * �码
          */
         @NotBlank(message = "{merchant.register.password.not.blank}")
         @Size(min = 6, max = 20, message = "{merchant.register.password.length}")
@@ -212,7 +254,7 @@ public class MerchantAuthController extends BaseController
         /**
          * 邀请码
          */
-        @NotBlank(message = "{merchant.register.invite.code.not.blank}")
+//        @NotBlank(message = "{merchant.register.invite.code.not.blank}")
         private String inviteCode;
 
         public String getUsername()
