@@ -72,7 +72,7 @@ public class TCustomer
 
     /** 实名认证状态：0-未认证，1-待审核，2-已认证 */
     @Excel(name = "实名认证状态：0-未认证，1-待审核，2-已认证")
-    private Integer realnameStatus = 0;
+    private Integer realnameStatus;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;

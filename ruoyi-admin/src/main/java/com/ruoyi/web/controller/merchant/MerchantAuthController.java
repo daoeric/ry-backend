@@ -124,7 +124,7 @@ public class MerchantAuthController extends BaseController
         customer.setLockBalance(BigDecimal.ZERO);
         customer.setLockBalance(BigDecimal.ZERO);
         customer.setStatus(0); // 0-正常 1-禁用
-        customer.setGrade(1);
+        customer.setGrade(0);
 
         // 生成唯一的4位数字邀请码
         String inviteCode = generateUniqueInviteCode();

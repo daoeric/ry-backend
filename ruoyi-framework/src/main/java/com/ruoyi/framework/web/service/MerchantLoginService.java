@@ -7,16 +7,12 @@ import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
-import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.redis.RedisCache;
-import com.ruoyi.common.enums.ExceptionEnum;
-import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.exception.user.*;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.MessageUtils;
 import com.ruoyi.common.utils.StringUtils;
-import com.ruoyi.common.utils.google.GoogleAuthenticator;
 import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.framework.manager.AsyncManager;
 import com.ruoyi.framework.manager.factory.AsyncFactory;
@@ -31,7 +27,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Date;
 
 /**
  * 登录校验方法
@@ -49,9 +44,6 @@ public class MerchantLoginService
 
     @Autowired
     private RedisCache redisCache;
-    
-    @Autowired
-    private ISysUserService userService;
 
     @Autowired
     private ISysConfigService configService;
@@ -98,14 +90,15 @@ public class MerchantLoginService
         }
         LoginMerchantUser loginUser = (LoginMerchantUser) authentication.getPrincipal();
         TCustomer customer = customerService.selectTCustomerByUsername(username);
-        recordLoginInfo(loginUser.getUserId());
+        recordLoginInfo(loginUser.getId());
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
         // 生成token
         String token = tokenService.createToken(loginUser);
         loginUser.setToken(token);
         loginUser.setUsername(customer.getUsername());
         loginUser.setLastLoginTime(customer.getLastLoginTime());
-        loginUser.setToken(tokenService.createToken(loginUser));
+        // 重新生成token以确保使用商户专用的Redis key
+        //loginUser.setToken(tokenService.createToken(loginUser));
         return loginUser;
     }
 
@@ -181,10 +174,10 @@ public class MerchantLoginService
      */
     public void recordLoginInfo(Long userId)
     {
-        SysUser sysUser = new SysUser();
-        sysUser.setUserId(userId);
-        sysUser.setLoginIp(IpUtils.getIpAddr());
-        sysUser.setLoginDate(DateUtils.getNowDate());
-        userService.updateUserProfile(sysUser);
+        TCustomer sysUser = new TCustomer();
+        sysUser.setId(userId);
+        sysUser.setLastLoginAddress(IpUtils.getIpAddr());
+        sysUser.setLastLoginTime(DateUtils.getNowDate());
+        customerService.updateTCustomer(sysUser);
     }
 }

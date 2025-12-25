@@ -35,7 +35,8 @@ public class CacheController
 
     private final static List<SysCache> caches = new ArrayList<SysCache>();
     {
-        caches.add(new SysCache(CacheConstants.LOGIN_TOKEN_KEY, "用户信息"));
+        caches.add(new SysCache(CacheConstants.LOGIN_TOKEN_KEY, "系统用户信息"));
+        caches.add(new SysCache(CacheConstants.MERCHANT_LOGIN_TOKEN_KEY, "商户用户信息"));
         caches.add(new SysCache(CacheConstants.SYS_CONFIG_KEY, "配置信息"));
         caches.add(new SysCache(CacheConstants.SYS_DICT_KEY, "数据字典"));
         caches.add(new SysCache(CacheConstants.CAPTCHA_CODE_KEY, "验证码"));

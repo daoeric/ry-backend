@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.ruoyi.common.constant.CacheConstants;
 import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.ServletUtils;
@@ -70,9 +71,17 @@ public class TokenService
                 Claims claims = parseToken(token);
                 // 解析对应的权限以及用户信息
                 String uuid = (String) claims.get(Constants.LOGIN_USER_KEY);
-                String userKey = getTokenKey(uuid);
-                LoginUser user = redisCache.getCacheObject(userKey);
-                return user;
+                
+                // 根据请求路径判断是系统用户还是商户用户
+                String uri = request.getRequestURI();
+                String userKey;
+                if (uri.startsWith(Constants.CLIENT_URL_PREFIX)) {
+                    userKey = getMerchantTokenKey(uuid);
+                    return redisCache.getCacheObject(userKey);
+                } else {
+                    userKey = getTokenKey(uuid);
+                    return redisCache.getCacheObject(userKey);
+                }
             }
             catch (Exception e)
             {
@@ -89,7 +98,12 @@ public class TokenService
     {
         if (StringUtils.isNotNull(loginUser) && StringUtils.isNotEmpty(loginUser.getToken()))
         {
-            refreshToken(loginUser);
+            if (loginUser instanceof LoginMerchantUser) {
+                // 商户用户使用单独的刷新方法
+                refreshMerchantToken((LoginMerchantUser) loginUser);
+            } else {
+                refreshToken(loginUser);
+            }
         }
     }
 
@@ -100,8 +114,11 @@ public class TokenService
     {
         if (StringUtils.isNotEmpty(token))
         {
+            // 由于无法确定是系统用户还是商户用户，尝试删除两个位置的token
             String userKey = getTokenKey(token);
+            String merchantUserKey = getMerchantTokenKey(token);
             redisCache.deleteObject(userKey);
+            redisCache.deleteObject(merchantUserKey);
         }
     }
 
@@ -116,7 +133,12 @@ public class TokenService
         String token = IdUtils.fastUUID();
         loginUser.setToken(token);
         setUserAgent(loginUser);
-        refreshToken(loginUser);
+        
+        if (loginUser instanceof LoginMerchantUser) {
+            refreshMerchantToken((LoginMerchantUser) loginUser);
+        } else {
+            refreshToken(loginUser);
+        }
 
         Map<String, Object> claims = new HashMap<>();
         claims.put(Constants.LOGIN_USER_KEY, token);
@@ -135,12 +157,16 @@ public class TokenService
         long currentTime = System.currentTimeMillis();
         if (expireTime - currentTime <= MILLIS_MINUTE_TEN)
         {
-            refreshToken(loginUser);
+            if (loginUser instanceof LoginMerchantUser) {
+                refreshMerchantToken((LoginMerchantUser) loginUser);
+            } else {
+                refreshToken(loginUser);
+            }
         }
     }
 
     /**
-     * 刷新令牌有效期
+     * 刷新系统用户令牌有效期
      *
      * @param loginUser 登录信息
      */
@@ -150,6 +176,20 @@ public class TokenService
         loginUser.setExpireTime(loginUser.getLoginTime() + expireTime * MILLIS_MINUTE);
         // 根据uuid将loginUser缓存
         String userKey = getTokenKey(loginUser.getToken());
+        redisCache.setCacheObject(userKey, loginUser, expireTime, TimeUnit.MINUTES);
+    }
+    
+    /**
+     * 刷新商户用户令牌有效期
+     *
+     * @param loginUser 登录信息
+     */
+    public void refreshMerchantToken(LoginMerchantUser loginUser)
+    {
+        loginUser.setLoginTime(System.currentTimeMillis());
+        loginUser.setExpireTime(loginUser.getLoginTime() + expireTime * MILLIS_MINUTE);
+        // 根据uuid将loginUser缓存
+        String userKey = getMerchantTokenKey(loginUser.getToken());
         redisCache.setCacheObject(userKey, loginUser, expireTime, TimeUnit.MINUTES);
     }
 
@@ -227,5 +267,10 @@ public class TokenService
     private String getTokenKey(String uuid)
     {
         return CacheConstants.LOGIN_TOKEN_KEY + uuid;
+    }
+    
+    private String getMerchantTokenKey(String uuid)
+    {
+        return CacheConstants.MERCHANT_LOGIN_TOKEN_KEY + uuid;
     }
 }
