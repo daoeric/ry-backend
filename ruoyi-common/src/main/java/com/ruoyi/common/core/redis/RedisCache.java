@@ -152,6 +152,18 @@ public class RedisCache
     {
         return redisTemplate.opsForList().range(key, 0, -1);
     }
+    
+    /**
+     * 左侧推入列表缓存
+     *
+     * @param key 缓存的键值
+     * @param value 待推入的数据
+     * @return 推入后的列表长度
+     */
+    public <T> Long lLeftPush(final String key, final T value)
+    {
+        return redisTemplate.opsForList().leftPush(key, value);
+    }
 
     /**
      * 缓存Set

@@ -7,16 +7,19 @@ import com.ruoyi.business.service.ITCreditLogService;
 import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.business.service.ITRealnameAuthService;
 import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.dto.ChangePasswordDto;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.ServletUtils;
 import com.ruoyi.common.vo.merchant.CustomerVO;
 import com.ruoyi.common.vo.merchant.IndexVO;
+import com.ruoyi.common.vo.merchant.ScrollerVO;
 import com.ruoyi.framework.web.service.TokenService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +49,9 @@ public class MerchantProfileController extends BaseController
 
     @Autowired
     private ITCreditLogService creditLogService;
+
+    @Autowired
+    private RedisCache redisCache;
 
 
     @GetMapping("/myProfile")
@@ -77,10 +83,23 @@ public class MerchantProfileController extends BaseController
         vo.setUserId(loginUser.getId());
         TCustomer customer = customerService.getById(loginUser.getId());
         vo.setUsername(customer.getUsername());
-        vo.setPool(new BigDecimal("14230.55"));
-        vo.setTotalRewards(new BigDecimal("8932"));
+        String pool = redisCache.getCacheObject(Constants.POOL_KEY);
+        String rewards = redisCache.getCacheObject(Constants.REWARDS_KEY);
+        vo.setPool(new BigDecimal(pool));
+        vo.setTotalRewards(new BigDecimal(rewards));
         return AjaxResult.success(vo);
     }
+
+    @GetMapping("/scroller/list")
+    public AjaxResult scrollerList()
+    {
+//        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        //先从redis中获取缓存数据
+        String key = "merchant:scroller";
+        List<ScrollerVO> scrollerVOList = redisCache.getCacheList(key);
+        return AjaxResult.success(scrollerVOList);
+    }
+
 
     /**
      * 修改密码

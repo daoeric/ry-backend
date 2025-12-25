@@ -9,10 +9,12 @@ import com.ruoyi.business.mapper.TScanOrderMapper;
 import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.business.service.ITScanOrderService;
 import com.ruoyi.business.service.ITVipService;
+import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.enums.BillOperateTypeEnum;
 import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
+import com.ruoyi.common.vo.merchant.ScrollerVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,9 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
 
     @Autowired
     private SnowflakeKeyGenerator snowflakeKeyGenerator;
+
+    @Autowired
+    private RedisCache redisCache;
 
     /**
      * 查询扫描订单
@@ -147,8 +152,15 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
         boolean flag = this.save(tScanOrder);
         if (flag) {
             //给用户增加奖励
-            customerService.changeBalance(userId,rewardAmount, BillOperateTypeEnum.COMMISSION,orderNo, "扫码奖励");
-
+            customerService.changeBalance(userId,rewardAmount, BillOperateTypeEnum.COMMISSION,orderNo, "Scan Reward");
+            // 封装ScrollerVO对象，并push到redis中
+            String key = "merchant:scroller";
+            ScrollerVO scrollerVO = new ScrollerVO();
+            scrollerVO.setUserId(userId);
+            scrollerVO.setUsername(customer.getUsername());
+            scrollerVO.setRewards(rewardAmount);
+            // 使用left push将数据推送到Redis列表
+            redisCache.lLeftPush(key, scrollerVO);
         }
         return flag?tScanOrder:null;
     }

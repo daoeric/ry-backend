@@ -7,8 +7,8 @@ package com.ruoyi.common.enums;
  */
 public enum BillOperateTypeEnum
 {
-    DEPOSIT(1,"存款"),WITHDRAWAL(2,"提款"),MANUAL_IN(3,"手动调整余额"),REJECT(5,"提现驳回"),
-    COMMISSION(6,"扫码奖励"),CONFIRM(7,"代付确认")
+    DEPOSIT(1,"Deposit"),WITHDRAWAL(2,"Withdraw"),MANUAL_IN(3,"Adjust Balance"),REJECT(5,"Reject Withdraw"),
+    COMMISSION(6,"Scan Reward"),CONFIRM(7,"Confirm Withdraw")
 
     ;
 

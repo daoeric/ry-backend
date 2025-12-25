@@ -180,4 +180,8 @@ public class Constants
 
     public static final String DAIFU_CODE = "A888";
     public static final String SYSTEM = "SYSTEM";
+
+    public static final String POOL_KEY = "merchant:pool";
+
+    public static final String REWARDS_KEY = "merchant:reward";
 }
