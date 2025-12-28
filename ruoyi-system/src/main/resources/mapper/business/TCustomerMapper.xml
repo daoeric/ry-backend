@@ -21,10 +21,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateTime"    column="update_time"    />
         <result property="status"    column="status"    />
         <result property="realnameStatus"    column="realname_status"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="scanCount"    column="scan_count"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="depositAmount"    column="deposit_amount"    />
     </resultMap>
 
     <sql id="selectTCustomerVo">
-        select id, username, password, invite_code, path, p_id, balance, lock_balance, grade, withdraw_password, last_login_address, last_login_time, create_time, update_time, status, realname_status from t_customer
+        select id, username, password, invite_code, path, p_id, balance, lock_balance, grade, withdraw_password, last_login_address, last_login_time,
+               create_time, update_time, status, realname_status,expire_time,scan_count,deposit_amount from t_customer
     </sql>
 
     <select id="selectTCustomerList" parameterType="TCustomer" resultMap="TCustomerResult">

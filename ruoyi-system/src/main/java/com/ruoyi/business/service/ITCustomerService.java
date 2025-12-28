@@ -1,6 +1,7 @@
 package com.ruoyi.business.service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -104,4 +105,6 @@ public interface ITCustomerService extends IService<TCustomer>
      * @return 结果
      */
     boolean sendRewardNotification(Long customerId, java.math.BigDecimal amount, ITMerchantMessageService merchantMessageService);
+
+    boolean renew(Long userId, Date expireTime);
 }

@@ -8,7 +8,6 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginBody;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.redis.RedisCache;
-import com.ruoyi.common.utils.Base62;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.SnowflakeKeyGenerator;
@@ -17,14 +16,12 @@ import com.ruoyi.framework.web.service.MerchantLoginService;
 import com.ruoyi.system.service.ISysConfigService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * 商户端登录注册

@@ -92,6 +92,17 @@ public class TCustomerController extends BaseController
     }
 
     /**
+     * 修改用户管理
+     */
+    @PreAuthorize("@ss.hasPermi('business:customer:edit')")
+    @Log(title = "续签会员", businessType = BusinessType.UPDATE)
+    @PutMapping("/renew")
+    public AjaxResult renewVip(@RequestBody TCustomer tCustomer)
+    {
+        return toAjax(tCustomerService.renew(tCustomer.getId(),tCustomer.getExpireTime()));
+    }
+
+    /**
      * 删除用户管理
      */
     @PreAuthorize("@ss.hasPermi('business:customer:remove')")

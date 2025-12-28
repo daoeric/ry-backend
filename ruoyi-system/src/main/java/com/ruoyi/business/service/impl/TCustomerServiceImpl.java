@@ -252,7 +252,15 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
     public boolean sendRewardNotification(Long customerId, java.math.BigDecimal amount, ITMerchantMessageService merchantMessageService) {
         return merchantMessageService.sendRewardNotification(customerId, amount);
     }
-    
+
+    @Override
+    public boolean renew(Long userId, Date expireTime) {
+        UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("expire_time", expireTime);
+        updateWrapper.eq("id",userId);
+        return this.update(updateWrapper);
+    }
+
     @Override
     public boolean existsByInviteCode(String inviteCode) {
         TCustomer customer = tCustomerMapper.selectOneByInviteCode(inviteCode);

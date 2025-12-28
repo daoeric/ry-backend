@@ -84,4 +84,20 @@ public class TCustomer
     /** 备注 */
 //    private String remark;
 
+    /**
+     * VIP过期时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date expireTime;
+
+    /**
+     * 奖励次数
+     */
+    private Integer scanCount;
+
+    /**
+     * 充值金额，VIP晋升
+     */
+    private BigDecimal depositAmount;
+
 }

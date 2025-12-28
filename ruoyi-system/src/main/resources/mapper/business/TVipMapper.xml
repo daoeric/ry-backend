@@ -12,6 +12,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="maxReward"    column="max_reward"    />
         <result property="shareCount"    column="share_count"    />
         <result property="shareReward"    column="share_reward"    />
+        <result property="depositCondition"    column="deposit_condition"    />
         <result property="createTime"    column="create_time"    />
         <result property="createBy"    column="create_by"    />
         <result property="updateTime"    column="update_time"    />
@@ -20,7 +21,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectTVipVo">
-        select id, scan_limit, withdraw_limit, min_reward, max_reward, share_count, share_reward, create_time, create_by, update_time, update_by, remark from t_vip
+        select id, scan_limit, withdraw_limit, min_reward, max_reward, share_count, share_reward,deposit_condition,create_time, create_by, update_time, update_by, remark from t_vip
     </sql>
 
     <select id="selectTVipList" parameterType="TVip" resultMap="TVipResult">
@@ -79,6 +80,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="maxReward != null">max_reward = #{maxReward},</if>
             <if test="shareCount != null">share_count = #{shareCount},</if>
             <if test="shareReward != null">share_reward = #{shareReward},</if>
+            <if test="depositCondition != null">deposit_condition = #{depositCondition},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
