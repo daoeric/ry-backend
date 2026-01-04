@@ -1,25 +1,24 @@
 package com.ruoyi.web.controller.business;
 
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.business.domain.TPaymentRequest;
+import com.ruoyi.business.service.ITPaymentRequestService;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.common.enums.BusinessType;
-import com.ruoyi.business.domain.TPaymentRequest;
-import com.ruoyi.business.service.ITPaymentRequestService;
-import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.exception.CustomException;
+import com.ruoyi.common.utils.RedisLock;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.poi.ExcelUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 存入订单Controller
@@ -33,6 +32,9 @@ public class TPaymentRequestController extends BaseController
 {
     @Autowired
     private ITPaymentRequestService tPaymentRequestService;
+
+    @Autowired
+    private RedisLock redisLock;
 
     /**
      * 查询存入订单列表
@@ -100,5 +102,35 @@ public class TPaymentRequestController extends BaseController
     public AjaxResult remove(@PathVariable String[] requestIds)
     {
         return toAjax(tPaymentRequestService.deleteTPaymentRequestByRequestIds(requestIds));
+    }
+
+    /**
+     * 手动通过存入订单
+     */
+    @PreAuthorize("@ss.hasPermi('business:paymentRequest:edit')")
+    @Log(title = "手动通过存入订单", businessType = BusinessType.UPDATE)
+    @PostMapping("/manualApprove")
+    public AjaxResult manualApprove(@RequestBody TPaymentRequest tPaymentRequest)
+    {
+
+        BigDecimal realAmount = tPaymentRequest.getRealAmount();
+        if (realAmount == null) {
+            throw new CustomException("真实金额不能为空");
+        }
+        String requestId = tPaymentRequest.getRequestId();
+        if (StringUtils.isEmpty(requestId)) {
+            throw new CustomException("订单号不能为空");
+        }
+        String key = "maulApprove:"+requestId;
+        String remark = tPaymentRequest.getRemark();
+        boolean result = false;
+        try{
+            if (redisLock.tryLock(key, 5, 60, TimeUnit.SECONDS)) {
+                result = tPaymentRequestService.approve(requestId,realAmount,remark);
+            }
+        } catch (Exception e){
+            return AjaxResult.error(e.getMessage());
+        }
+        return toAjax(result);
     }
 }

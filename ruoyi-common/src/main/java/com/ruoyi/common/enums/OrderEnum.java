@@ -11,7 +11,7 @@ import lombok.Getter;
 @Getter
 public enum OrderEnum implements BaseEnum
 {
-    PENDDING(1,"等待"),SUCCESS(2,"成功"),FAIL(3,"失败");
+    PENDDING(1,"等待"),SUCCESS(2,"成功"),FAIL(3,"失败"),ERROR(7,"异常");
 
     int value;
     String message;

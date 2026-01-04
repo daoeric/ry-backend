@@ -1,6 +1,9 @@
 package com.ruoyi.web.controller.merchant;
 
+import com.ruoyi.business.domain.TPaymentRequest;
 import com.ruoyi.business.domain.TScanOrder;
+import com.ruoyi.business.service.ITCustomerService;
+import com.ruoyi.business.service.ITPaymentRequestService;
 import com.ruoyi.business.service.ITScanOrderService;
 import com.ruoyi.business.service.ITVipService;
 import com.ruoyi.common.core.controller.BaseController;
@@ -8,18 +11,16 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.domain.model.ScanBody;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.dto.payment.DepositDto;
 import com.ruoyi.common.exception.CustomException;
-import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.payment.DepositResult;
 import com.ruoyi.common.utils.RedisLock;
 import com.ruoyi.common.utils.ServletUtils;
 import com.ruoyi.framework.web.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +44,12 @@ public class MerchantScanController extends BaseController
 
     @Autowired
     private RedisLock redisLock;
+
+    @Autowired
+    private ITPaymentRequestService paymentRequestService;
+
+    @Autowired
+    private ITCustomerService customerService;
 
 
 
@@ -82,5 +89,59 @@ public class MerchantScanController extends BaseController
         List<TScanOrder> list = scanOrderService.selectTScanOrderList(tScanOrder);
         return getDataTable(list);
     }
+
+    /**
+     * 存款接口
+     */
+    @PostMapping("/deposit")
+    public AjaxResult deposit(@RequestBody @Validated TPaymentRequest paymentRequest)
+    {
+        //根据token获取登录用户的信息
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        Long userId = loginUser.getId();
+        
+        // 设置用户ID
+        paymentRequest.setCustomerId(userId);
+        paymentRequest.setUsername(loginUser.getUsername());
+        DepositResult result = paymentRequestService.deposit(userId,loginUser.getUsername(),paymentRequest.getOrderAmount());
+        if (result.getCode()==200) {
+            return AjaxResult.success(result);
+        } else {
+            return AjaxResult.error("failed pull deposit");
+        }
+    }
+
+    /**
+     * 查询存款记录列表
+     */
+    @GetMapping("/deposit/list")
+    public TableDataInfo depositList(TPaymentRequest paymentRequest)
+    {
+        startPage();
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        paymentRequest.setCustomerId(loginUser.getId());
+        List<TPaymentRequest> list = paymentRequestService.selectTPaymentRequestList(paymentRequest);
+        return getDataTable(list);
+    }
+
+    @PostMapping("/pay")
+    public AjaxResult pay(@RequestBody @Validated DepositDto DepositDto)
+    {
+        //根据token获取登录用户的信息
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        Long userId = loginUser.getId();
+
+        DepositDto.setUserId(userId);
+
+        DepositResult result = paymentRequestService.pay(DepositDto);
+
+        return AjaxResult.success(result);
+
+
+    }
+
+
+
+
 
 }

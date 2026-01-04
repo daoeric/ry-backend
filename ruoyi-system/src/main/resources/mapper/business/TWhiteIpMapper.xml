@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.TWhiteIpMapper">
+    
+    <resultMap type="TWhiteIp" id="TWhiteIpResult">
+        <result property="id"    column="id"    />
+        <result property="alias"    column="alias"    />
+        <result property="ipAddress"    column="ip_address"    />
+        <result property="code"    column="code"    />
+        <result property="status"    column="status"    />
+        <result property="groupId"    column="group_id"    />
+        <result property="botUsername"    column="bot_username"    />
+        <result property="prepBalance"    column="prep_balance"    />
+    </resultMap>
+
+    <sql id="selectTWhiteIpVo">
+        select id, alias, ip_address, code, status, group_id, bot_username, prep_balance from t_white_ip
+    </sql>
+
+    <select id="selectTWhiteIpList" parameterType="TWhiteIp" resultMap="TWhiteIpResult">
+        <include refid="selectTWhiteIpVo"/>
+        <where>  
+            <if test="alias != null  and alias != ''"> and alias = #{alias}</if>
+            <if test="ipAddress != null  and ipAddress != ''"> and ip_address = #{ipAddress}</if>
+            <if test="code != null  and code != ''"> and code = #{code}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="groupId != null  and groupId != ''"> and group_id = #{groupId}</if>
+            <if test="botUsername != null  and botUsername != ''"> and bot_username like concat('%', #{botUsername}, '%')</if>
+            <if test="prepBalance != null "> and prep_balance = #{prepBalance}</if>
+        </where>
+    </select>
+    
+    <select id="selectTWhiteIpById" parameterType="Integer" resultMap="TWhiteIpResult">
+        <include refid="selectTWhiteIpVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTWhiteIp" parameterType="TWhiteIp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_white_ip
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="alias != null and alias != ''">alias,</if>
+            <if test="ipAddress != null">ip_address,</if>
+            <if test="code != null">code,</if>
+            <if test="status != null">status,</if>
+            <if test="groupId != null">group_id,</if>
+            <if test="botUsername != null">bot_username,</if>
+            <if test="prepBalance != null">prep_balance,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="alias != null and alias != ''">#{alias},</if>
+            <if test="ipAddress != null">#{ipAddress},</if>
+            <if test="code != null">#{code},</if>
+            <if test="status != null">#{status},</if>
+            <if test="groupId != null">#{groupId},</if>
+            <if test="botUsername != null">#{botUsername},</if>
+            <if test="prepBalance != null">#{prepBalance},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTWhiteIp" parameterType="TWhiteIp">
+        update t_white_ip
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="alias != null and alias != ''">alias = #{alias},</if>
+            <if test="ipAddress != null">ip_address = #{ipAddress},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="botUsername != null">bot_username = #{botUsername},</if>
+            <if test="prepBalance != null">prep_balance = #{prepBalance},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTWhiteIpById" parameterType="Integer">
+        delete from t_white_ip where id = #{id}
+    </delete>
+
+    <delete id="deleteTWhiteIpByIds" parameterType="String">
+        delete from t_white_ip where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

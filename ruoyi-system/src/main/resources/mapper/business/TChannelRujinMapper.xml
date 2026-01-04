@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.TChannelRujinMapper">
+    
+    <resultMap type="TChannelRujin" id="TChannelRujinResult">
+        <result property="channelId"    column="channel_id"    />
+        <result property="merchantId"    column="merchant_id"    />
+        <result property="name"    column="name"    />
+        <result property="code"    column="code"    />
+        <result property="status"    column="status"    />
+        <result property="priKey"    column="pri_key"    />
+        <result property="apiUrl"    column="api_url"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="depositNotify"    column="deposit_notify"    />
+        <result property="channelRate"    column="channel_rate"    />
+        <result property="alias"    column="alias"    />
+        <result property="productId"    column="product_id"    />
+        <result property="minAmount"    column="min_amount"    />
+        <result property="maxAmount"    column="max_amount"    />
+        <result property="fixAmount"    column="fix_amount"    />
+        <result property="channelType"    column="channel_type"    />
+    </resultMap>
+
+    <sql id="selectTChannelRujinVo">
+        select t1.channel_id, merchant_id, name, code, status, pri_key, api_url, remark, create_by, create_time, update_by,
+               update_time, deposit_notify, channel_rate, alias,
+               min_amount, max_amount, fix_amount, channel_type,t2.product_ids as product_id
+            from t_channel_rujin t1
+                 left join
+             (SELECT channel_Id, GROUP_CONCAT(product_id) AS product_ids
+              FROM t_product_channel
+              GROUP BY channel_Id) t2 on t1.channel_id = t2.channel_Id
+    </sql>
+
+    <select id="selectTChannelRujinList" parameterType="TChannelRujin" resultMap="TChannelRujinResult">
+        <include refid="selectTChannelRujinVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and t1.name like concat('%', #{name}, '%')</if>
+            <if test="code != null  and code != ''"> and t1.code = #{code}</if>
+            <if test="status != null "> and t1.status = #{status}</if>
+            <if test="alias != null  and alias != ''"> and t1.alias = #{alias}</if>
+            <if test="productId != null "> and t2.product_ids like concat('%', #{productId}, '%') </if>
+            <if test="channelType != null  and channelType != ''"> and t1.channel_type = #{channelType}</if>
+        </where>
+        order by t1.channel_id desc
+
+    </select>
+    
+    <select id="selectTChannelRujinById" parameterType="Integer" resultMap="TChannelRujinResult">
+        <include refid="selectTChannelRujinVo"/>
+        where t1.channel_id = #{channelId}
+    </select>
+        
+    <insert id="insertTChannelRujin" parameterType="TChannelRujin" useGeneratedKeys="true" keyProperty="channelId">
+        insert into t_channel_rujin
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="merchantId != null and merchantId != ''">merchant_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="code != null">code,</if>
+            <if test="status != null">status,</if>
+            <if test="priKey != null and priKey != ''">pri_key,</if>
+            <if test="apiUrl != null and apiUrl != ''">api_url,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="depositNotify != null">deposit_notify,</if>
+            <if test="channelRate != null">channel_rate,</if>
+            <if test="alias != null">alias,</if>
+            <if test="productId != null">product_id,</if>
+            <if test="minAmount != null">min_amount,</if>
+            <if test="maxAmount != null">max_amount,</if>
+            <if test="fixAmount != null">fix_amount,</if>
+            <if test="channelType != null and channelType != ''">channel_type,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="merchantId != null and merchantId != ''">#{merchantId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="code != null">#{code},</if>
+            <if test="status != null">#{status},</if>
+            <if test="priKey != null and priKey != ''">#{priKey},</if>
+            <if test="apiUrl != null and apiUrl != ''">#{apiUrl},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="depositNotify != null">#{depositNotify},</if>
+            <if test="channelRate != null">#{channelRate},</if>
+            <if test="alias != null">#{alias},</if>
+            <if test="productId != null">#{productId},</if>
+            <if test="minAmount != null">#{minAmount},</if>
+            <if test="maxAmount != null">#{maxAmount},</if>
+            <if test="fixAmount != null">#{fixAmount},</if>
+            <if test="channelType != null and channelType != ''">#{channelType},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTChannelRujin" parameterType="TChannelRujin">
+        update t_channel_rujin
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="merchantId != null and merchantId != ''">merchant_id = #{merchantId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="priKey != null and priKey != ''">pri_key = #{priKey},</if>
+            <if test="apiUrl != null and apiUrl != ''">api_url = #{apiUrl},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="depositNotify != null">deposit_notify = #{depositNotify},</if>
+            <if test="channelRate != null">channel_rate = #{channelRate},</if>
+            <if test="alias != null">alias = #{alias},</if>
+            <if test="productId != null">product_id = #{productId},</if>
+            <if test="minAmount != null">min_amount = #{minAmount},</if>
+            <if test="maxAmount != null">max_amount = #{maxAmount},</if>
+            <if test="fixAmount != null">fix_amount = #{fixAmount},</if>
+            <if test="channelType != null and channelType != ''">channel_type = #{channelType},</if>
+        </trim>
+        where channel_id = #{channelId}
+    </update>
+
+    <delete id="deleteTChannelRujinById" parameterType="Integer">
+        delete from t_channel_rujin where channel_id = #{channelId}
+    </delete>
+
+    <delete id="deleteTChannelRujinByIds" parameterType="String">
+        delete from t_channel_rujin where channel_id in 
+        <foreach item="channelId" collection="array" open="(" separator="," close=")">
+            #{channelId}
+        </foreach>
+    </delete>
+
+
+    <select id="listByProductId" parameterType="String" resultMap="TChannelRujinResult">
+        select
+        channel_id,
+        name,
+        status,
+        alias,
+        min_amount,
+        max_amount,
+        fix_amount,
+        channel_type,
+        channel_rate
+        from t_channel_rujin where channel_id in (select channel_id from t_product_channel where product_id = #{productId})
+    </select>
+
+</mapper>

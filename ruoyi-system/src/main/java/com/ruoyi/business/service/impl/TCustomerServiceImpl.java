@@ -178,7 +178,7 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
                     postBalance = prebalance.add(number);
                     updateWrapper.setSql("balance = balance + " + number);
                 } else if(BillOperateTypeEnum.DEPOSIT.equals(type)) {//存款
-                    updateWrapper.setSql("balance = balance + " + number);
+                    updateWrapper.setSql("balance = balance + " + number+",deposit_amount=deposit_amount+"+number);
                     postBalance = prebalance.add(number);
                 } else if (BillOperateTypeEnum.WITHDRAWAL.equals(type)) { //提款
                     updateWrapper.setSql("balance = balance - " + number + ",lock_balance = lock_balance + "+ number);

@@ -1,7 +1,10 @@
 package com.ruoyi.business.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import com.ruoyi.business.domain.TPaymentRequest;
+import com.ruoyi.common.dto.payment.DepositDto;
+import com.ruoyi.common.payment.DepositResult;
 
 /**
  * 存入订单Service接口
@@ -58,4 +61,12 @@ public interface ITPaymentRequestService
      * @return 结果
      */
     public int deleteTPaymentRequestByRequestId(String requestId);
+
+    DepositResult deposit(Long userId, String username, BigDecimal orderAmount);
+
+    boolean approve(String requestId, BigDecimal realAmount, String remark);
+
+    DepositResult pay(DepositDto depositDto);
+
+    boolean doSuccess(String billNo, BigDecimal amount);
 }
