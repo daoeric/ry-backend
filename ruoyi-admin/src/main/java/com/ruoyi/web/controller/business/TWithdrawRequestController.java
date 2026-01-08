@@ -1,7 +1,18 @@
 package com.ruoyi.web.controller.business;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.ruoyi.business.domain.TCreditLog;
+import com.ruoyi.business.domain.TCustomer;
+import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.enums.BillOperateTypeEnum;
+import com.ruoyi.common.exception.CustomException;
+import com.ruoyi.common.utils.RedisLock;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +44,9 @@ public class TWithdrawRequestController extends BaseController
 {
     @Autowired
     private ITWithdrawRequestService tWithdrawRequestService;
+
+    @Autowired
+    private RedisLock redisLock;
 
     /**
      * 查询提现订单列表
@@ -100,5 +114,28 @@ public class TWithdrawRequestController extends BaseController
     public AjaxResult remove(@PathVariable String[] withdrawIds)
     {
         return toAjax(tWithdrawRequestService.deleteTWithdrawRequestByWithdrawIds(withdrawIds));
+    }
+
+
+    @PreAuthorize("@ss.hasPermi('business:withdrawRequest:edit')")
+    @Log(title = "审核通过提现订单", businessType = BusinessType.UPDATE)
+    @PutMapping("/approve")
+    public AjaxResult approve(@RequestBody TWithdrawRequest tWithdrawRequest)
+    {
+        String key = "withdraw:approve:" + tWithdrawRequest.getWithdrawId();
+        AjaxResult result = AjaxResult.success();
+        try{
+            if(redisLock.tryLock(key, 3, 10, TimeUnit.SECONDS)) {
+                String withdrawId = tWithdrawRequest.getWithdrawId();
+                Integer status = tWithdrawRequest.getStatus();
+                boolean isSuccess = tWithdrawRequestService.approve(withdrawId,status,tWithdrawRequest.getRemark());
+                result = isSuccess ? AjaxResult.success() : AjaxResult.error("审核失败");
+            }
+        } catch (Exception e){
+            throw e;
+        } finally {
+            redisLock.unlock(key);
+        }
+        return result;
     }
 }

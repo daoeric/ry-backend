@@ -1,6 +1,8 @@
 package com.ruoyi.business.mapper;
 
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruoyi.business.domain.TWithdrawRequest;
 
 /**
@@ -9,7 +11,7 @@ import com.ruoyi.business.domain.TWithdrawRequest;
  * @author ruoyi
  * @date 2025-12-12
  */
-public interface TWithdrawRequestMapper 
+public interface TWithdrawRequestMapper extends BaseMapper<TWithdrawRequest>
 {
     /**
      * 查询提现订单

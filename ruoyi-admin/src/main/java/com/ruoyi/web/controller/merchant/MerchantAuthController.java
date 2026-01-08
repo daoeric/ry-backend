@@ -102,14 +102,15 @@ public class MerchantAuthController extends BaseController
             return AjaxResult.errorByCode("merchant.register.username.exists");
         }
         // 查看邀请码是否已存在
+        TCustomer existInviteCustomer = null;
         if (StringUtils.isNotEmpty(registerBody.getInviteCode())) {
-            TCustomer existInviteCode = customerService.selectTCustomerByInviteCode(registerBody.getInviteCode());
-            if (existInviteCode == null)
+            existInviteCustomer = customerService.selectTCustomerByInviteCode(registerBody.getInviteCode());
+            if (existInviteCustomer == null)
             {
                 return AjaxResult.errorByCode("merchant.register.invite.code.not.exists");
             }
             //设置邀请人id
-            customer.setPId(existInviteCode.getId());
+            customer.setPId(existInviteCustomer.getId());
         }
 
 
@@ -129,8 +130,8 @@ public class MerchantAuthController extends BaseController
 
         try
         {
-            int result = customerService.insertTCustomer(customer);
-            if (result > 0)
+            boolean rs = customerService.register(customer,existInviteCustomer);
+            if (rs)
             {
                 return AjaxResult.successByCode("merchant.register.success");
             }

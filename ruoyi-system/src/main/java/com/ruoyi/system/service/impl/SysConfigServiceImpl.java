@@ -221,7 +221,7 @@ public class SysConfigServiceImpl implements ISysConfigService
 
     @Override
     public boolean selectCaptchaOnOff() {
-        String captchaOnOff = selectConfigByKey("sys.account.captchaOnOff");
+        String captchaOnOff = selectConfigByKey("sys.account.captchaEnabled");
         if (StringUtils.isEmpty(captchaOnOff))
         {
             return true;

@@ -125,9 +125,11 @@ public class TRealnameAuthServiceImpl extends ServiceImpl<TRealnameAuthMapper, T
         updateWrapper.set("audit_reason", auditReason);
         boolean result = this.update(updateWrapper);
         if (result) {
+            TRealnameAuth realnameAuth = tRealnameAuthMapper.selectById(id);
             UpdateWrapper<TCustomer> updateWrapper1 = new UpdateWrapper<>();
-            updateWrapper1.eq("id", tRealnameAuthMapper.selectById(id).getCustomerId());
+            updateWrapper1.eq("id", realnameAuth.getCustomerId());
             updateWrapper1.set("realname_status", status==1?2:3);
+            updateWrapper1.set("real_name",realnameAuth.getRealName());
             tCustomerService.update(updateWrapper1);
         }
         return result;

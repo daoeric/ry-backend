@@ -16,10 +16,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy"    column="update_by"    />
         <result property="realAmount"    column="real_amount"    />
         <result property="remark"    column="remark"    />
+        <result property="bankName"    column="bank_name"    />
+        <result property="bankNo"    column="bank_no"    />
+        <result property="realName"    column="real_name"    />
     </resultMap>
 
     <sql id="selectTWithdrawRequestVo">
-        select withdraw_id, withdraw_amount, customer_id, username, status, create_time, create_by, update_time, update_by, real_amount, remark from t_withdraw_request
+        select withdraw_id, withdraw_amount, customer_id, username, status, create_time, create_by,
+               update_time, update_by, real_amount, remark,bank_name,bank_no,real_name from t_withdraw_request
     </sql>
 
     <select id="selectTWithdrawRequestList" parameterType="TWithdrawRequest" resultMap="TWithdrawRequestResult">
@@ -31,6 +35,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null "> and status = #{status}</if>
             <if test="realAmount != null "> and real_amount = #{realAmount}</if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectTWithdrawRequestByWithdrawId" parameterType="String" resultMap="TWithdrawRequestResult">

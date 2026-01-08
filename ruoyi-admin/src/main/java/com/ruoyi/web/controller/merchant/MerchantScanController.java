@@ -1,26 +1,26 @@
 package com.ruoyi.web.controller.merchant;
 
-import com.ruoyi.business.domain.TPaymentRequest;
-import com.ruoyi.business.domain.TScanOrder;
-import com.ruoyi.business.service.ITCustomerService;
-import com.ruoyi.business.service.ITPaymentRequestService;
-import com.ruoyi.business.service.ITScanOrderService;
-import com.ruoyi.business.service.ITVipService;
+import com.ruoyi.business.domain.*;
+import com.ruoyi.business.service.*;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.domain.model.ScanBody;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.dto.merchant.BankInfoAddDto;
+import com.ruoyi.common.dto.merchant.WithdrawAddDto;
 import com.ruoyi.common.dto.payment.DepositDto;
 import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.payment.DepositResult;
 import com.ruoyi.common.utils.RedisLock;
 import com.ruoyi.common.utils.ServletUtils;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.framework.web.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.websocket.server.PathParam;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +50,12 @@ public class MerchantScanController extends BaseController
 
     @Autowired
     private ITCustomerService customerService;
+
+    @Autowired
+    private ITBankInfoService bankInfoService;
+
+    @Autowired
+    private ITWithdrawRequestService withdrawRequestService;
 
 
 
@@ -112,6 +118,21 @@ public class MerchantScanController extends BaseController
     }
 
     /**
+     * 提款接口
+     */
+    @PostMapping("/withdraw")
+    public AjaxResult withdraw(@RequestBody @Validated WithdrawAddDto dto)
+    {
+        //根据token获取登录用户的信息
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        Long userId = loginUser.getId();
+        boolean result = withdrawRequestService.withdraw(userId,dto.getWithdrawAmount(),dto.getBankInfoId());
+        return result? AjaxResult.success("success") : AjaxResult.error("failed pull withdraw");
+    }
+
+
+
+    /**
      * 查询存款记录列表
      */
     @GetMapping("/deposit/list")
@@ -124,24 +145,93 @@ public class MerchantScanController extends BaseController
         return getDataTable(list);
     }
 
-    @PostMapping("/pay")
-    public AjaxResult pay(@RequestBody @Validated DepositDto DepositDto)
+    /**
+     * 查询提款记录列表
+     */
+    @GetMapping("/withdraw/list")
+    public TableDataInfo withdrawList(TWithdrawRequest withdrawRequest)
+    {
+        startPage();
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        withdrawRequest.setCustomerId(loginUser.getId());
+        List<TWithdrawRequest> list = withdrawRequestService.selectTWithdrawRequestList(withdrawRequest);
+        return getDataTable(list);
+    }
+
+//    @PostMapping("/pay")
+//    public AjaxResult pay(@RequestBody @Validated DepositDto DepositDto)
+//    {
+//        //根据token获取登录用户的信息
+//        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+//        Long userId = loginUser.getId();
+//
+//        DepositDto.setUserId(userId);
+//
+//        DepositResult result = paymentRequestService.pay(DepositDto);
+//
+//        return AjaxResult.success(result);
+//
+//
+//    }
+
+
+    @GetMapping("/user/bankCards")
+    public AjaxResult bankCards()
+    {
+        //根据token获取登录用户的信息
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        Long userId = loginUser.getId();
+        TBankInfo bankInfo = new TBankInfo();
+        bankInfo.setCustomerId(userId);
+        List<TBankInfo> bankInfoList = bankInfoService.selectTBankInfoList(bankInfo);
+        return AjaxResult.success(bankInfoList);
+    }
+
+    @PostMapping("/user/bankCard")
+    public AjaxResult bankCardsPost(@RequestBody @Validated BankInfoAddDto addDto)
+    {
+        //根据token获取登录用户的信息
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        Long userId = loginUser.getId();
+        //查看用户是否绑定了实名，如果没有，则提示先绑定实名
+        TCustomer customer = customerService.getById(userId);
+        if (StringUtils.isEmpty(customer.getRealName())) {
+            throw new CustomException("请先进行实名操作！");
+        }
+
+        //查看是否达到绑定银行卡的次数
+        Integer count = bankInfoService.countByCustomerId(userId);
+        int limit  = 5;
+        if (count >= 5) {
+            throw new CustomException("银达到绑定银行卡的次数"+limit+"次，请先解绑！");
+        }
+
+        TBankInfo bankInfo = new TBankInfo();
+        bankInfo.setCustomerId(userId);
+        bankInfo.setBankName(addDto.getBankName());
+        bankInfo.setBankCard(addDto.getCardNumber());
+        bankInfo.setRealName(customer.getRealName());
+        bankInfo.setUsername(loginUser.getUsername());
+        int result = bankInfoService.insertTBankInfo(bankInfo);
+        return AjaxResult.success(result>0);
+    }
+
+    @DeleteMapping("/user/bankCard/{id}")
+    public AjaxResult bankCardsPost(@PathVariable("id") Long id)
     {
         //根据token获取登录用户的信息
         LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
         Long userId = loginUser.getId();
 
-        DepositDto.setUserId(userId);
-
-        DepositResult result = paymentRequestService.pay(DepositDto);
-
-        return AjaxResult.success(result);
-
-
+        TBankInfo bankInfo = bankInfoService.getById(id);
+        if (bankInfo == null) {
+            throw new CustomException("参数错误");
+        }
+        if (!bankInfo.getCustomerId().equals(userId)) {
+            throw new CustomException("参数错误");
+        }
+        int count = bankInfoService.deleteTBankInfoById(id);
+        return AjaxResult.success(count>0);
     }
-
-
-
-
 
 }

@@ -262,6 +262,31 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
     }
 
     @Override
+    public boolean useScanCount(Long userId) {
+        //scan_count 字段-1
+        UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.setSql("scan_count = scan_count - 1");
+        updateWrapper.eq("id",userId);
+        return this.update(updateWrapper);
+    }
+
+    @Override
+    @Transactional
+    public boolean register(TCustomer customer, TCustomer existInviteCustomer) {
+        int count = this.insertTCustomer(customer);
+        if (count > 0) {
+            if (existInviteCustomer != null) {
+                //更新邀请人信息
+                UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.setSql("scan_count = scan_count + 1");
+                updateWrapper.eq("id",existInviteCustomer.getId());
+                this.update(updateWrapper);
+            }
+        }
+        return count>0;
+    }
+
+    @Override
     public boolean existsByInviteCode(String inviteCode) {
         TCustomer customer = tCustomerMapper.selectOneByInviteCode(inviteCode);
         return customer != null;

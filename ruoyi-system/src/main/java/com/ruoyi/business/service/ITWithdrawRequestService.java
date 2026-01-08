@@ -1,6 +1,9 @@
 package com.ruoyi.business.service;
 
+import java.math.BigDecimal;
 import java.util.List;
+
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.business.domain.TWithdrawRequest;
 
 /**
@@ -9,7 +12,7 @@ import com.ruoyi.business.domain.TWithdrawRequest;
  * @author ruoyi
  * @date 2025-12-12
  */
-public interface ITWithdrawRequestService 
+public interface ITWithdrawRequestService extends IService<TWithdrawRequest>
 {
     /**
      * 查询提现订单
@@ -58,4 +61,8 @@ public interface ITWithdrawRequestService
      * @return 结果
      */
     public int deleteTWithdrawRequestByWithdrawId(String withdrawId);
+
+    boolean withdraw(Long userId, BigDecimal withdrawAmount, Long bankInfoId);
+
+    boolean approve(String withdrawId, Integer status,String remark);
 }

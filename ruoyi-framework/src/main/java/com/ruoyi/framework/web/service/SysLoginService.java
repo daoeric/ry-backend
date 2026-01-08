@@ -73,6 +73,14 @@ public class SysLoginService
         loginPreCheck(username, password);
         // 用户验证
         Authentication authentication = null;
+
+        boolean captchaOnOff = configService.selectCaptchaOnOff();
+        // 验证码开关
+        if (captchaOnOff)
+        {
+            validateCaptcha(username, code, uuid);
+        }
+
         try
         {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);

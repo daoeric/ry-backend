@@ -54,10 +54,10 @@ public class SysLoginController
         // 生成令牌
         LoginUser loginUser = loginService.login(loginBody.getUsername(), loginBody.getPassword(), loginBody.getCode(),
                 loginBody.getUuid());
-        if(StringUtils.isEmpty(loginBody.getCode())){
-            ajax.put("safeMode",loginUser.getUser().getLoginDate()==null?0:1);
-            ajax.put("googleCode","otpauth://totp/"+projectName+"@"+loginUser.getUser().getUserName()+"?secret="+loginUser.getUser().getGoogleCode());
-        }
+//        if(StringUtils.isEmpty(loginBody.getCode())){
+//            ajax.put("safeMode",loginUser.getUser().getLoginDate()==null?0:1);
+//            ajax.put("googleCode","otpauth://totp/"+projectName+"@"+loginUser.getUser().getUserName()+"?secret="+loginUser.getUser().getGoogleCode());
+//        }
         ajax.put(Constants.TOKEN, loginUser.getToken());
         return ajax;
     }

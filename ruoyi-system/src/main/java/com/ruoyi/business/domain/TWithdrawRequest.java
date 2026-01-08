@@ -1,6 +1,8 @@
 package com.ruoyi.business.domain;
 
 import java.math.BigDecimal;
+
+import lombok.Data;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -12,6 +14,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * @author ruoyi
  * @date 2025-12-12
  */
+@Data
 public class TWithdrawRequest extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
@@ -38,6 +41,12 @@ public class TWithdrawRequest extends BaseEntity
     /** 真实金额 */
     @Excel(name = "真实金额")
     private BigDecimal realAmount;
+
+    private String bankName;
+
+    private String bankNo;
+
+    private String realName;
 
     public void setWithdrawId(String withdrawId) 
     {

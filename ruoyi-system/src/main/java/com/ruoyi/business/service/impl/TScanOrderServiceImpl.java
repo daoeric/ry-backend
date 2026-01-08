@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -134,7 +136,15 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
         Long scanCount = this.countScanCount(userId);
         scanCount = scanCount == null?0:scanCount;
         if (scanCount >= scanLimit) {
-            throw new CustomException("Scan limit "+scanCount+" times");
+            //用户是否有额外的扫码次数
+            int extraScanCount = customer.getScanCount();
+            if (extraScanCount<=0) {
+                throw new CustomException("Scan limit "+scanCount+" times");
+            } else {
+                //使用额外的扫码次数
+
+
+            }
         }
 
         //根据最小奖励金额和最大奖励金额之间随机一个金额
@@ -161,6 +171,9 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
             scrollerVO.setRewards(rewardAmount);
             // 使用left push将数据推送到Redis列表
             redisCache.lLeftPush(key, scrollerVO);
+            //更新用户抽奖次数
+            customerService.useScanCount(userId);
+
         }
         return flag?tScanOrder:null;
     }
@@ -176,6 +189,14 @@ public class TScanOrderServiceImpl extends ServiceImpl<TScanOrderMapper, TScanOr
     public Long countScanCount(Long userId) {
         QueryWrapper<TScanOrder> wrapper = new QueryWrapper<>();
         wrapper.eq("customer_id",userId);
+        //查询当天的扫码次数，当天00:00:00-23:59:59
+        try {
+            Date now  = DateUtils.getNowDate();
+            wrapper.between("create_time", DateUtils.getDateBegin(now), DateUtils.getDateEnd(now));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
         return this.count(wrapper);
     }
 

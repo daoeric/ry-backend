@@ -107,4 +107,8 @@ public interface ITCustomerService extends IService<TCustomer>
     boolean sendRewardNotification(Long customerId, java.math.BigDecimal amount, ITMerchantMessageService merchantMessageService);
 
     boolean renew(Long userId, Date expireTime);
+
+    boolean useScanCount(Long userId);
+
+    boolean register(TCustomer customer, TCustomer existInviteCustomer);
 }
