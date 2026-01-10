@@ -64,9 +64,7 @@ public interface ITPaymentRequestService
 
     DepositResult deposit(Long userId, String username, BigDecimal orderAmount);
 
-    boolean approve(String requestId, BigDecimal realAmount, String remark);
-
     DepositResult pay(DepositDto depositDto);
 
-    boolean doSuccess(String billNo, BigDecimal amount);
+    boolean doSuccess(String billNo, BigDecimal amount,String remark);
 }

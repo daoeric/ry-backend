@@ -134,7 +134,7 @@ public class ApiController extends BaseController {
     @RequestMapping("/deposit/notify/{serviceKey}")
     public void depositCallback(HttpServletRequest request, HttpServletResponse response, @PathVariable String serviceKey) {
         Map<String, Object> parameterMap = getParameterMap(request);
-        String key = "depositRequestCallback:"+serviceKey;
+        String key = "doSuccess:"+serviceKey;
         String requestIp = IpUtils.getIpAddr(request);
         log.info("收到{}的代付回调,参数:{}",requestIp,parameterMap);
         //查看IP白名单
@@ -156,7 +156,7 @@ public class ApiController extends BaseController {
                 boolean result = paymentService.depositCallback(parameterMap);
                 if (result) {
                     BigDecimal realAmount = paymentService.getRealAmount(parameterMap);
-                    if(paymentRequestService.doSuccess(billNo,realAmount)){
+                    if(paymentRequestService.doSuccess(billNo,realAmount,null)){
                         // 预付提醒
                         //AsyncManager.me().execute(AsyncFactory.checkPrepAmount(paymentRequest.getMchId()));
                         //订单成功提醒

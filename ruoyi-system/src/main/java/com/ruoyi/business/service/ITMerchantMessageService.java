@@ -104,9 +104,10 @@ public interface ITMerchantMessageService extends IService<TMerchantMessage>
      * 标记消息为已读
      * 
      * @param messageId 消息ID
+     * @param customerId 商户ID
      * @return 结果
      */
-    public boolean markAsRead(Long messageId);
+    public boolean markAsRead(Long messageId, Long customerId);
     
     /**
      * 批量标记消息为已读

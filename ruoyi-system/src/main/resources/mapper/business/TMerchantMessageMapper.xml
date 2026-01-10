@@ -8,15 +8,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="id"    column="id"    />
         <result property="title"    column="title"    />
         <result property="content"    column="content"    />
-        <result property="customerId"    column="customer_id"    />
-        <result property="status"    column="status"    />
         <result property="type"    column="type"    />
         <result property="createTime"    column="create_time"    />
         <result property="readTime"    column="read_time"    />
+        <result property="readMerchantIds"    column="read_merchant_ids"    />
     </resultMap>
     
     <sql id="selectTMerchantMessageVo">
-        select id, title, content, customer_id, status, type, create_time, read_time from t_merchant_message
+        select id, title, content, type, create_time, read_time, read_merchant_ids from t_merchant_message
     </sql>
     
     <select id="selectTMerchantMessageList" parameterType="TMerchantMessage" resultMap="TMerchantMessageResult">
@@ -24,8 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>  
             <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
             <if test="content != null  and content != ''"> and content = #{content}</if>
-            <if test="customerId != null "> and customer_id = #{customerId}</if>
-            <if test="status != null "> and status = #{status}</if>
+
             <if test="type != null "> and type = #{type}</if>
         </where>
         order by create_time desc
@@ -41,8 +39,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="title != null and title != ''">title,</if>
             <if test="content != null and content != ''">content,</if>
-            <if test="customerId != null">customer_id,</if>
-            <if test="status != null">status,</if>
+            <if test="readMerchantIds != null and readMerchantIds != ''">read_merchant_ids,</if>
             <if test="type != null">type,</if>
             <if test="createTime != null">create_time,</if>
             <if test="readTime != null">read_time,</if>
@@ -50,8 +47,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="title != null and title != ''">#{title},</if>
             <if test="content != null and content != ''">#{content},</if>
-            <if test="customerId != null">#{customerId},</if>
-            <if test="status != null">#{status},</if>
+            <if test="readMerchantIds != null and readMerchantIds != ''">#{readMerchantIds},</if>
             <if test="type != null">#{type},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="readTime != null">#{readTime},</if>
@@ -63,8 +59,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="title != null and title != ''">title = #{title},</if>
             <if test="content != null and content != ''">content = #{content},</if>
-            <if test="customerId != null">customer_id = #{customerId},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="readMerchantIds != null and readMerchantIds != ''">read_merchant_ids = #{readMerchantIds},</if>
             <if test="type != null">type = #{type},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="readTime != null">read_time = #{readTime},</if>
@@ -79,26 +74,32 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <delete id="deleteTMerchantMessageByIds" parameterType="String">
         delete from t_merchant_message where id in 
         <foreach item="id" collection="array" open="(" separator="," close=")">
-            #{id}
+            <if test="readMerchantIds != null and readMerchantIds != ''">read_merchant_ids,</if>
         </foreach>
     </delete>
     
     <select id="selectUnreadCountByCustomerId" parameterType="Long" resultType="int">
         select count(*) from t_merchant_message 
-        where (customer_id = #{customerId} or customer_id is null) and status = 0
+        where
+         (read_merchant_ids is null or read_merchant_ids not like CONCAT('%', #{customerId}, '%'))
     </select>
     
     <select id="selectMessagesByCustomerId" resultMap="TMerchantMessageResult">
-        select id, title, content, customer_id, status, type, create_time, read_time 
+        select id, title, content, type, create_time, read_time, read_merchant_ids
         from t_merchant_message 
-        where (customer_id = #{customerId} or customer_id is null)
         order by create_time desc
         limit #{offset}, #{limit}
     </select>
     
     <update id="markAllAsRead">
         update t_merchant_message 
-        set status = 1, read_time = NOW() 
-        where (customer_id = #{customerId} or customer_id is null) and status = 0
+        set read_merchant_ids = CASE 
+            WHEN read_merchant_ids IS NULL THEN #{customerId} 
+            WHEN read_merchant_ids = '' THEN #{customerId} 
+            ELSE CONCAT(read_merchant_ids, ',', #{customerId}) 
+        END,
+        read_time = NOW()
+        where
+         (read_merchant_ids is null or read_merchant_ids not like CONCAT('%', #{customerId}, '%'))
     </update>
 </mapper>

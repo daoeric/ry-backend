@@ -3,10 +3,12 @@ package com.ruoyi.business.service.impl;
 import com.ruoyi.business.domain.TChannelRujin;
 import com.ruoyi.business.domain.TCustomer;
 import com.ruoyi.business.domain.TPaymentRequest;
+import com.ruoyi.business.domain.TVip;
 import com.ruoyi.business.mapper.TPaymentRequestMapper;
 import com.ruoyi.business.service.ITChannelRujinService;
 import com.ruoyi.business.service.ITCustomerService;
 import com.ruoyi.business.service.ITPaymentRequestService;
+import com.ruoyi.business.service.ITVipService;
 import com.ruoyi.common.dto.payment.DepositDto;
 import com.ruoyi.common.enums.BillOperateTypeEnum;
 import com.ruoyi.common.enums.OrderEnum;
@@ -47,6 +49,9 @@ public class TPaymentRequestServiceImpl implements ITPaymentRequestService
 
     @Autowired
     private ITChannelRujinService channelRujinServicel;
+
+    @Autowired
+    private ITVipService vipService;
 
 
 
@@ -157,30 +162,6 @@ public class TPaymentRequestServiceImpl implements ITPaymentRequestService
 
     @Override
     @Transactional
-    public boolean approve(String requestId, BigDecimal realAmount, String remark) {
-        TPaymentRequest request = tPaymentRequestMapper.selectTPaymentRequestByRequestId(requestId);
-        if (request == null || !OrderEnum.PENDDING.getCode().equals(request.getStatus())) {
-            throw new CustomException("待处理的订单不存在");
-        }
-        Long customerId = request.getCustomerId();
-        //修改订单状态
-        TPaymentRequest paymentRequest = new TPaymentRequest();
-        paymentRequest.setRequestId(requestId);
-        paymentRequest.setRealAmount(realAmount);
-        paymentRequest.setStatus(OrderEnum.SUCCESS.getCode());
-        paymentRequest.setRemark(remark);
-        Boolean result = tPaymentRequestMapper.updateTPaymentRequest(paymentRequest)>0;
-        if (result) {
-            //修改商户金额
-            customerService.changeBalance(customerId,realAmount, BillOperateTypeEnum.DEPOSIT,requestId,remark);
-            //TODO VIP达到条件自动升级
-
-        }
-        return result;
-    }
-
-    @Override
-    @Transactional
     public DepositResult pay(DepositDto depositDto) {
         IPaymentService paymentService = SpringUtils.getBean("huifeng");
         TChannelRujin channelRujin = channelRujinServicel.getChannel("huifeng");
@@ -192,7 +173,7 @@ public class TPaymentRequestServiceImpl implements ITPaymentRequestService
 
     @Override
     @Transactional
-    public boolean doSuccess(String billNo, BigDecimal amount) {
+    public boolean doSuccess(String billNo, BigDecimal amount,String remark) {
         //设置订单成已支付
         boolean result = true;
         Date now = DateUtils.getNowDate();
@@ -203,33 +184,27 @@ public class TPaymentRequestServiceImpl implements ITPaymentRequestService
 
         BigDecimal orderAmount = paymentRequest.getOrderAmount();
         BigDecimal realAmount = amount == null ? orderAmount:amount;
-        //如果 真实金额与订单金额不一致,则需要重新计算手续费,费率等
-        BigDecimal agentProfit = paymentRequest.getOrderAmount();
-        String alias = paymentRequest.getAlias();
-//        if (orderAmount.compareTo(realAmount) != 0) {
-//            // 计算利润
-//            BigDecimal mchCost = realAmount.multiply(mchRate.divide(new BigDecimal(100)));
-//            BigDecimal channelCost = realAmount.multiply(channelRate.divide(new BigDecimal(100)));
-//            BigDecimal agentCost = agentRate.compareTo(BigDecimal.ZERO)==0?BigDecimal.ZERO:realAmount.multiply(mchRate.subtract(agentRate).divide(new BigDecimal(100)));
-//            BigDecimal profit = mchCost.subtract(channelCost).subtract(agentCost);
-//            paymentRequest.setFee(mchCost);
-//            paymentRequest.setProfit(profit);
-//            paymentRequest.setAgentCost(agentCost);
-//            paymentRequest.setChannelCost(channelCost);
-//            paymentRequest.setMchAmount(realAmount.subtract(mchCost));
-//        }
         Long userId = paymentRequest.getCustomerId();
         TCustomer customer = customerService.getById(userId);
-
         paymentRequest.setSuccessTime(now);
         paymentRequest.setUpdateBy(customer.getUsername());
         paymentRequest.setUpdateTime(now);
         paymentRequest.setRealAmount(realAmount);
         paymentRequest.setStatus(OrderEnum.SUCCESS.getCode());
+        paymentRequest.setRemark(remark);
         int count = this.updateTPaymentRequest(paymentRequest);
         if(count>0){
             //更新用户额度 API入金->商户订单号
             result = customerService.changeBalance(userId,realAmount,BillOperateTypeEnum.DEPOSIT,billNo,paymentRequest.getRequestId());
+            // 充值成功后，查看VIP是否达到升级条件，如果达到了，自动升级
+            // orderAmount 和VIP等级比较，如果满足条件，则升级
+            List<TVip> vipList = vipService.selectUpdateVip();
+            for (TVip vip : vipList) {
+                if (orderAmount.compareTo(vip.getDepositCondition()) >= 0 && customer.getGrade()<vip.getId()) {
+                    customerService.changeVipLevel(userId,vip.getId());
+                    break;
+                }
+            }
         }
         return  result;
     }

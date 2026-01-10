@@ -111,4 +111,6 @@ public interface ITCustomerService extends IService<TCustomer>
     boolean useScanCount(Long userId);
 
     boolean register(TCustomer customer, TCustomer existInviteCustomer);
+
+    boolean changeVipLevel(Long userId, Integer vip);
 }

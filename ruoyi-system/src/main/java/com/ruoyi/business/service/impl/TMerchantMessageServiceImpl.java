@@ -123,9 +123,8 @@ public class TMerchantMessageServiceImpl extends ServiceImpl<TMerchantMessageMap
         TMerchantMessage message = new TMerchantMessage();
         message.setTitle(title);
         message.setContent(content);
-        message.setCustomerId(customerId);
+//        message.setCustomerId(customerId);
         message.setType(type);
-        message.setStatus(0); // 未读
         return this.save(message);
     }
     
@@ -143,9 +142,8 @@ public class TMerchantMessageServiceImpl extends ServiceImpl<TMerchantMessageMap
         TMerchantMessage message = new TMerchantMessage();
         message.setTitle(title);
         message.setContent(content);
-        message.setCustomerId(null); // 发送给所有商户
+//        message.setCustomerId(null); // 发送给所有商户
         message.setType(type);
-        message.setStatus(0); // 未读
         return this.save(message);
     }
     
@@ -171,12 +169,28 @@ public class TMerchantMessageServiceImpl extends ServiceImpl<TMerchantMessageMap
      * @return 结果
      */
     @Override
-    public boolean markAsRead(Long messageId)
+    public boolean markAsRead(Long messageId, Long customerId)
     {
-        TMerchantMessage message = new TMerchantMessage();
-        message.setId(messageId);
-        message.setStatus(1); // 已读
+        TMerchantMessage message = this.getById(messageId);
+        if (message == null) {
+            return false;
+        }
+        
+        String readIds = message.getReadMerchantIds();
+        String customerIdStr = String.valueOf(customerId);
+        
+        if (readIds == null || readIds.trim().isEmpty()) {
+            readIds = customerIdStr;
+        } else if (!readIds.contains(customerIdStr)) {
+            readIds = readIds + "," + customerIdStr;
+        } else {
+            // 如果已经包含该商户ID，则直接返回成功
+            return true;
+        }
+        
+        message.setReadMerchantIds(readIds);
         message.setReadTime(new Date());
+        
         return this.updateById(message);
     }
     

@@ -287,6 +287,14 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
     }
 
     @Override
+    public boolean changeVipLevel(Long userId, Integer vip) {
+        UpdateWrapper<TCustomer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id",userId);
+        updateWrapper.set("grade",vip);
+        return this.update(updateWrapper);
+    }
+
+    @Override
     public boolean existsByInviteCode(String inviteCode) {
         TCustomer customer = tCustomerMapper.selectOneByInviteCode(inviteCode);
         return customer != null;

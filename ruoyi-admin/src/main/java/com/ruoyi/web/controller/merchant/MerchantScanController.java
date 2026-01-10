@@ -9,7 +9,6 @@ import com.ruoyi.common.core.domain.model.ScanBody;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.dto.merchant.BankInfoAddDto;
 import com.ruoyi.common.dto.merchant.WithdrawAddDto;
-import com.ruoyi.common.dto.payment.DepositDto;
 import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.payment.DepositResult;
 import com.ruoyi.common.utils.RedisLock;
@@ -20,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -185,6 +183,13 @@ public class MerchantScanController extends BaseController
         bankInfo.setCustomerId(userId);
         List<TBankInfo> bankInfoList = bankInfoService.selectTBankInfoList(bankInfo);
         return AjaxResult.success(bankInfoList);
+    }
+
+    @GetMapping("/user/vips")
+    public AjaxResult vips()
+    {
+        List<TVip> vipList = vipService.selectUpdateVip();
+        return AjaxResult.success(vipList);
     }
 
     @PostMapping("/user/bankCard")

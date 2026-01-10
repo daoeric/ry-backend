@@ -121,12 +121,12 @@ public class TPaymentRequestController extends BaseController
         if (StringUtils.isEmpty(requestId)) {
             throw new CustomException("订单号不能为空");
         }
-        String key = "maulApprove:"+requestId;
+        String key = "doSuccess:"+requestId;
         String remark = tPaymentRequest.getRemark();
         boolean result = false;
         try{
             if (redisLock.tryLock(key, 5, 60, TimeUnit.SECONDS)) {
-                result = tPaymentRequestService.approve(requestId,realAmount,remark);
+                result = tPaymentRequestService.doSuccess(requestId,realAmount,remark);
             }
         } catch (Exception e){
             return AjaxResult.error(e.getMessage());

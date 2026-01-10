@@ -39,8 +39,11 @@ public class MerchantMessageController extends BaseController
     {
         startPage();
         LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
-        tMerchantMessage.setCustomerId(loginUser.getId());
+//        tMerchantMessage.setCustomerId(loginUser.getId());
         List<TMerchantMessage> list = merchantMessageService.selectTMerchantMessageList(tMerchantMessage);
+        for (TMerchantMessage merchantMessage : list) {
+            merchantMessage.setStatus(merchantMessage.isReadByCustomer(loginUser.getId()) ? 1 : 0);
+        }
         return getDataTable(list);
     }
 
@@ -64,7 +67,8 @@ public class MerchantMessageController extends BaseController
     @PutMapping("/read/{messageId}")
     public AjaxResult readMessage(@PathVariable("messageId") Long messageId)
     {
-        boolean result = merchantMessageService.markAsRead(messageId);
+        LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
+        boolean result = merchantMessageService.markAsRead(messageId, loginUser.getId());
         return result ? AjaxResult.successByCode("merchant.message.read.success") : AjaxResult.errorByCode("merchant.message.read.error");
     }
 
@@ -90,10 +94,10 @@ public class MerchantMessageController extends BaseController
         TMerchantMessage message = merchantMessageService.selectTMerchantMessageById(messageId);
         
         // Check if message belongs to the current user or is a broadcast message
-        if (message != null && (message.getCustomerId() == null || message.getCustomerId().equals(loginUser.getId()))) {
+        if (message != null) {
             // Mark as read if it's unread
-            if (message.getStatus() == 0) {
-                merchantMessageService.markAsRead(messageId);
+            if (!message.isReadByCustomer(loginUser.getId())) {
+                merchantMessageService.markAsRead(messageId, loginUser.getId());
             }
             return AjaxResult.success(message);
         } else {

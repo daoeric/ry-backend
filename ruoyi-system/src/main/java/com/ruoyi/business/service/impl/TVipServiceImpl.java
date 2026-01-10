@@ -2,6 +2,7 @@ package com.ruoyi.business.service.impl;
 
 import java.util.List;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,5 +95,14 @@ public class TVipServiceImpl extends ServiceImpl<TVipMapper, TVip> implements IT
     public int deleteTVipById(Integer id)
     {
         return tVipMapper.deleteTVipById(id);
+    }
+
+    @Override
+    public List<TVip> selectUpdateVip() {
+        QueryWrapper<TVip> wrapper = new QueryWrapper<>();
+        //select * from t_vip where id > 0
+        wrapper.gt("id",0);
+        wrapper.orderByDesc("id");
+        return this.list(wrapper);
     }
 }

@@ -60,4 +60,6 @@ public interface ITVipService extends IService<TVip>
      * @return 结果
      */
     public int deleteTVipById(Integer id);
+
+    List<TVip> selectUpdateVip();
 }
