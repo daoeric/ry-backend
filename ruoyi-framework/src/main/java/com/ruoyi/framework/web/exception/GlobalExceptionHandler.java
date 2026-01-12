@@ -2,6 +2,7 @@ package com.ruoyi.framework.web.exception;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,41 @@ public class GlobalExceptionHandler
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',不支持'{}'请求", requestURI, e.getMethod());
         return AjaxResult.error(e.getMessage());
+    }
+
+    /**
+     * 自定义异常
+     */
+    @ExceptionHandler(CustomException.class)
+    public AjaxResult handleCustomException(CustomException e, HttpServletRequest request)
+    {
+        log.error(e.getMessage(), e);
+        if (e.getMessage() != null && e.getMessage().startsWith("GOOGLE_CODE_REQUIRED:")) {
+            // 处理谷歌验证异常，返回需要谷歌验证的信息
+            String[] parts = e.getMessage().split(":");
+            if (parts.length >= 3) {
+                String username = parts[1];
+                String googleCode = parts[2];
+                AjaxResult ajax = AjaxResult.success();
+                ajax.put("isGoogle", true);
+                ajax.put("googleCode", "otpauth://totp/" + "RuoYi" + "@" + username + "?secret=" + googleCode);
+                return ajax;
+            }
+        } else if (e.getMessage() != null && e.getMessage().startsWith("GOOGLE_BIND_REQUIRED:")) {
+            // 处理谷歌绑定异常，返回需要绑定谷歌验证的信息
+            String[] parts = e.getMessage().split(":");
+            if (parts.length >= 3) {
+                String username = parts[1];
+                String googleSecret = parts[2];
+                AjaxResult ajax = AjaxResult.success();
+                ajax.put("needGoogleBind", true);
+                ajax.put("googleSecret", googleSecret);
+                ajax.put("googleCode", "otpauth://totp/" + "RuoYi" + "@" + username + "?secret=" + googleSecret);
+                return ajax;
+            }
+        }
+        Integer code = e.getCode();
+        return StringUtils.isNotNull(code) ? AjaxResult.error(code, e.getMessage()) : AjaxResult.error(e.getMessage());
     }
 
     /**

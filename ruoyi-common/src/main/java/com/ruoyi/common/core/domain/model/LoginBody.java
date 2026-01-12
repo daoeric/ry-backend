@@ -35,6 +35,8 @@ public class LoginBody
     private String code;
 
     private String uuid;
+    
+    private String googleCode;
 
     @JsonIgnore
     public String getUuid() {
@@ -44,5 +46,13 @@ public class LoginBody
     @JsonProperty
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+    
+    public String getGoogleCode() {
+        return googleCode;
+    }
+    
+    public void setGoogleCode(String googleCode) {
+        this.googleCode = googleCode;
     }
 }

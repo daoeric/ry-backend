@@ -124,4 +124,7 @@ public interface SysUserMapper
      * @return 结果
      */
     public SysUser checkEmailUnique(String email);
+
+    int bindGoogle(@Param("userId")Long userId);
+    int resetGoogle(@Param("userId")Long userId);
 }

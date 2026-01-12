@@ -39,23 +39,30 @@ const user = {
       const password = userInfo.password
       const code = userInfo.code
       const uuid = userInfo.uuid
+      const googleCode = userInfo.googleCode
       const obj = {
         isGoogle:false,
+        needGoogleBind: false,
         googleCode:''
       }
       return new Promise((resolve, reject) => {
-        login(username, password, code, uuid).then(res => {
-          const safeMode = res.safeMode;
-          const googleCode = res.googleCode;
-          if(safeMode === 0){
-            //跳出谷歌校验页面
+        login(username, password, code, uuid, googleCode).then(res => {
+          // 检查是否需要谷歌验证
+          if(res.isGoogle) {
             obj.isGoogle = true;
-            obj.googleCode = googleCode;
+            obj.googleCode = res.googleCode;
+            resolve(obj);
+          } else if(res.needGoogleBind) {
+            // 需要绑定谷歌验证
+            obj.needGoogleBind = true;
+            obj.googleCode = res.googleCode;
             resolve(obj);
           } else {
+            // 正常登录成功
             setToken(res.token)
             commit('SET_TOKEN', res.token)
             obj.isGoogle = false;
+            obj.needGoogleBind = false;
             resolve(obj)
           }
         }).catch(error => {

@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.system;
 
+import com.ruoyi.common.utils.google.GoogleAuthenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -109,6 +110,20 @@ public class SysProfileController extends BaseController
             return success();
         }
         return error("修改密码异常，请联系管理员");
+    }
+
+    @Log(title = "重置谷歌", businessType = BusinessType.UPDATE)
+    @PutMapping("/google/reset")
+    public AjaxResult resetGoogle()
+    {
+        LoginUser loginUser = getLoginUser();
+        SysUser sysUser = loginUser.getUser();
+        // 生成谷歌验证密钥
+        String googleSecret = GoogleAuthenticator.getRandomSecretKey();
+        // 更新用户的谷歌验证密钥
+        sysUser.setGoogleCode(googleSecret);
+        sysUser.setSafeMode(0); // 标记为未完成谷歌验证绑定
+        return AjaxResult.success(userService.updateUserProfile(sysUser));
     }
 
     /**

@@ -169,7 +169,14 @@ export default {
               //调出谷歌验证码
               this.open = true;
               this.codeUrl = tag.googleCode;
-              this.title = "谷歌验证码绑定"
+              this.title = "谷歌验证码验证";
+            } else if(tag.needGoogleBind) {
+              // 需要绑定谷歌验证
+              this.open = true;
+              this.codeUrl = tag.googleCode;
+              this.title = "谷歌验证码绑定";
+              // 在登录表单中保存谷歌密钥，以便后续验证
+              this.loginForm.googleCode = this.loginForm.code;
             } else{
               this.$router.push({ path: this.redirect || "/" }).catch(()=>{});
             }
@@ -184,8 +191,17 @@ export default {
         if(valid){
           this.loading = true;
           this.title = "谷歌验证码绑定"
+          // 将输入的谷歌验证码赋值给googleCode字段
+          this.loginForm.googleCode = this.loginForm.code;
           this.$store.dispatch("Login", this.loginForm).then((tag) => {
-            this.$router.push({ path: this.redirect || "/" }).catch(()=>{});
+            if(tag.needGoogleBind || tag.isGoogle) {
+              // 如果仍需要绑定或验证，则更新信息
+              this.codeUrl = tag.googleCode;
+              this.title = tag.needGoogleBind ? "谷歌验证码绑定" : "谷歌验证码验证";
+            } else {
+              // 登录成功
+              this.$router.push({ path: this.redirect || "/" }).catch(()=>{});
+            }
           }).catch(() => {
             this.loading = false;
           });

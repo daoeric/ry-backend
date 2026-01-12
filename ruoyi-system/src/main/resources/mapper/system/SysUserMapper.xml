@@ -192,6 +192,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  			<if test="loginDate != null">login_date = #{loginDate},</if>
  			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
  			<if test="remark != null">remark = #{remark},</if>
+ 			<if test="safeMode != null">safe_mode = #{safeMode},</if>
+ 			<if test="googleCode != null">google_code = #{googleCode},</if>
  			update_time = sysdate()
  		</set>
  		where user_id = #{userId}
@@ -208,10 +210,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<update id="resetUserPwd" parameterType="SysUser">
  		update sys_user set password = #{password} where user_name = #{userName}
 	</update>
-	
+
 	<delete id="deleteUserById" parameterType="Long">
  		update sys_user set del_flag = '2' where user_id = #{userId}
  	</delete>
+
+	<update id="bindGoogle" parameterType="Long">
+		update sys_user set safe_mode = 1 where user_id = #{userId}
+	</update>
+
+	<update id="resetGoogle" parameterType="Long">
+		update sys_user set safe_mode = 0 where user_id = #{userId}
+	</update>
  	
  	<delete id="deleteUserByIds" parameterType="Long">
  		update sys_user set del_flag = '2' where user_id in

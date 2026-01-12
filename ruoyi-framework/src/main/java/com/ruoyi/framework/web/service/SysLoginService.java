@@ -1,39 +1,32 @@
 package com.ruoyi.framework.web.service;
 
-import javax.annotation.Resource;
-
-import com.ruoyi.common.enums.ExceptionEnum;
-import com.ruoyi.common.exception.CustomException;
-import com.ruoyi.common.utils.google.GoogleAuthenticator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
 import com.ruoyi.common.constant.CacheConstants;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.redis.RedisCache;
+import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.exception.ServiceException;
-import com.ruoyi.common.exception.user.BlackListException;
-import com.ruoyi.common.exception.user.CaptchaException;
-import com.ruoyi.common.exception.user.CaptchaExpireException;
-import com.ruoyi.common.exception.user.UserNotExistsException;
-import com.ruoyi.common.exception.user.UserPasswordNotMatchException;
+import com.ruoyi.common.exception.user.*;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.MessageUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.google.GoogleAuthenticator;
 import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.framework.manager.AsyncManager;
 import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.framework.security.context.AuthenticationContextHolder;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import javax.annotation.Resource;
 
 /**
  * 登录校验方法
@@ -67,7 +60,7 @@ public class SysLoginService
      * @param uuid 唯一标识
      * @return 结果
      */
-    public LoginUser login(String username, String password, String code, String uuid)
+    public LoginUser login(String username, String password, String code, String uuid,String googleCode)
     {
         // 登录前置校验
         loginPreCheck(username, password);
@@ -106,25 +99,51 @@ public class SysLoginService
             AuthenticationContextHolder.clearContext();
         }
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        Date loginDate = loginUser.getUser()!= null ? loginUser.getUser().getLoginDate() :null;
-        if (loginDate == null && StringUtils.isEmpty(code)) {
-            return loginUser;
+        SysUser sysUser = loginUser.getUser();
+        
+        // 检查是否需要谷歌验证
+        if (sysUser != null && sysUser.getSafeMode()!=null && sysUser.getSafeMode()==1) {
+            // 如果用户绑定了谷歌验证，需要验证谷歌验证码
+            if (StringUtils.isEmpty(googleCode)) {
+                // 如果没有提供谷歌验证码，抛出特定异常，由控制器处理
+                throw new CustomException("GOOGLE_CODE_REQUIRED:" + sysUser.getUserName() + ":" + sysUser.getGoogleCode());
+            } else {
+                // 验证谷歌验证码
+                String expectedCode = GoogleAuthenticator.getTOTPCode(sysUser.getGoogleCode());
+                if (!StringUtils.equals(googleCode, expectedCode)) {
+                    AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("google.code.error")));
+                    throw new CustomException("谷歌验证码错误");
+                }
+            }
+        } else if (sysUser != null && (sysUser.getSafeMode() == null || sysUser.getSafeMode() == 0)) {
+            // 用户没有绑定谷歌验证，检查是否需要绑定
+            if (sysUser.getGoogleCode() == null || sysUser.getGoogleCode().isEmpty()) {
+                // 生成谷歌验证密钥
+                String googleSecret = GoogleAuthenticator.getRandomSecretKey();
+                
+                // 更新用户的谷歌验证密钥
+                sysUser.setGoogleCode(googleSecret);
+                sysUser.setSafeMode(0); // 标记为未完成谷歌验证绑定
+                userService.updateUserProfile(sysUser);
+                
+                // 抛出特殊异常，让控制器知道需要返回谷歌验证信息而不是正常token
+                throw new CustomException("GOOGLE_BIND_REQUIRED:" + sysUser.getUserName() + ":" + googleSecret);
+            }
+            
+            // 如果用户设置了谷歌验证但尚未完成验证（safeMode=0）且提供了谷歌验证码，则验证它
+            if (!StringUtils.isEmpty(googleCode) && sysUser.getSafeMode() == 0) {
+                String expectedCode = GoogleAuthenticator.getTOTPCode(sysUser.getGoogleCode());
+                if (StringUtils.equals(googleCode, expectedCode)) {
+                    // 验证成功，将用户设置为已绑定谷歌验证
+                    sysUser.setSafeMode(1);
+                    userService.updateUserProfile(sysUser);
+                } else {
+                    AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("google.code.error")));
+                    throw new CustomException("谷歌验证码错误");
+                }
+            }
         }
-//        boolean captchaOnOff = configService.selectCaptchaOnOff();
-//        if (captchaOnOff) {
-//            if (loginDate != null && StringUtils.isEmpty(code)) {
-//                throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
-//            }
-//            if (loginDate != null && StringUtils.isNotEmpty(code)) {
-//                String checkCode = GoogleAuthenticator.getTOTPCode(loginUser.getUser().getGoogleCode());
-//                if(!StringUtils.equals(code,checkCode)){
-//                    throw new CustomException(ExceptionEnum.GOOGLE_CODE_ERROR);
-//                }
-//            }
-//        }
-
-
-
+        
         recordLoginInfo(loginUser.getUserId());
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
         // 生成token

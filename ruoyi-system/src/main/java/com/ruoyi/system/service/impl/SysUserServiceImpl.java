@@ -541,4 +541,16 @@ public class SysUserServiceImpl implements ISysUserService
         }
         return successMsg.toString();
     }
+
+    @Override
+    public boolean bindGoogle(SysUser user) {
+        return userMapper.bindGoogle(user.getUserId())>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean resetGoogle(SysUser user) {
+        //随机生成新的谷歌
+        return userMapper.resetGoogle(user.getUserId())>0;
+    }
 }
