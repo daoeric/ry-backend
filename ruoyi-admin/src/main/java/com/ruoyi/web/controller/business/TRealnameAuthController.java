@@ -107,7 +107,7 @@ public class TRealnameAuthController extends BaseController
     @PutMapping("/approve")
     public AjaxResult approve(@RequestBody TRealnameAuth tRealnameAuth)
     {
-        boolean result = tRealnameAuthService.approve(tRealnameAuth.getId(), 1, tRealnameAuth.getAuditReason());
+        boolean result = tRealnameAuthService.approve(tRealnameAuth.getId(), 1, tRealnameAuth.getAuditReason(),getUsername());
         return AjaxResult.success(result);
     }
 
@@ -116,7 +116,7 @@ public class TRealnameAuthController extends BaseController
     @PutMapping("/reject")
     public AjaxResult reject(@RequestBody TRealnameAuth tRealnameAuth)
     {
-        boolean result = tRealnameAuthService.approve(tRealnameAuth.getId(), 2 ,tRealnameAuth.getAuditReason());
+        boolean result = tRealnameAuthService.approve(tRealnameAuth.getId(), 2 ,tRealnameAuth.getAuditReason(),getUsername());
         return AjaxResult.success(result);
     }
 

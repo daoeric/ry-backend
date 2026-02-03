@@ -118,11 +118,13 @@ public class TRealnameAuthServiceImpl extends ServiceImpl<TRealnameAuthMapper, T
 
     @Override
     @Transactional
-    public boolean approve(Long id, int status, String auditReason) {
+    public boolean approve(Long id, int status, String auditReason,String username) {
         UpdateWrapper<TRealnameAuth> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", id);
         updateWrapper.set("status", status);
         updateWrapper.set("audit_reason", auditReason);
+        updateWrapper.set("audit_time", new Date());
+        updateWrapper.set("audit_by", username);
         boolean result = this.update(updateWrapper);
         if (result) {
             TRealnameAuth realnameAuth = tRealnameAuthMapper.selectById(id);

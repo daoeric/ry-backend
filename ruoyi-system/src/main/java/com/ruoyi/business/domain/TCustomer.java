@@ -1,5 +1,6 @@
 package com.ruoyi.business.domain;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ruoyi.common.annotation.Excel;
 import lombok.Data;
@@ -101,5 +102,13 @@ public class TCustomer
      * 充值金额，VIP晋升
      */
     private BigDecimal depositAmount;
+
+    /**
+     * 在线状态：0-离线，1-在线
+     */
+    @TableField(exist = false)
+    private Integer onlineStatus;
+
+
 
 }

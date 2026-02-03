@@ -113,4 +113,6 @@ public interface ITCustomerService extends IService<TCustomer>
     boolean register(TCustomer customer, TCustomer existInviteCustomer);
 
     boolean changeVipLevel(Long userId, Integer vip);
+
+    int newRegisterCount(Date begin, Date end);
 }

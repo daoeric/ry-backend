@@ -11,7 +11,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.business.domain.TCreditLog;
 import com.ruoyi.business.service.ITCreditLogService;
 import com.ruoyi.business.service.ITMerchantMessageService;
+import com.ruoyi.common.constant.CacheConstants;
 import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.core.domain.model.LoginMerchantUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.enums.BillOperateTypeEnum;
 import com.ruoyi.common.exception.CustomException;
 import com.ruoyi.common.utils.DateUtils;
@@ -43,6 +47,9 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
 
     @Autowired
     private ITCreditLogService creditLogService;
+    
+    @Autowired
+    private RedisCache redisCache;
 
     /**
      * 查询用户管理
@@ -65,7 +72,40 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
     @Override
     public List<TCustomer> selectTCustomerList(TCustomer tCustomer)
     {
-        return tCustomerMapper.selectTCustomerList(tCustomer);
+        List<TCustomer> customers = tCustomerMapper.selectTCustomerList(tCustomer);
+        // 为每个用户设置在线状态
+        setCustomersOnlineStatus(customers);
+        return customers;
+    }
+
+    /**
+     * 设置用户在线状态
+     * @param customers 用户列表
+     */
+    private void setCustomersOnlineStatus(List<TCustomer> customers) {
+        // 获取Redis中所有商户用户token的key
+        java.util.Collection<String> merchantUserKeys = redisCache.keys(CacheConstants.MERCHANT_LOGIN_TOKEN_KEY + "*");
+        
+        java.util.Set<Long> onlineUserIds = new java.util.HashSet<>();
+
+        // 检查商户用户
+        for (String key : merchantUserKeys) {
+            LoginMerchantUser merchantUser = redisCache.getCacheObject(key);
+            if (merchantUser != null && merchantUser.getId() != null) {
+                // 对于商户用户，使用其id字段
+                Long userId = merchantUser.getId();
+                onlineUserIds.add(userId);
+            }
+        }
+
+        // 为每个用户设置在线状态
+        for (TCustomer customer : customers) {
+            if (onlineUserIds.contains(customer.getId())) {
+                customer.setOnlineStatus(1); // 在线
+            } else {
+                customer.setOnlineStatus(0); // 离线
+            }
+        }
     }
 
     /**
@@ -292,6 +332,13 @@ public class TCustomerServiceImpl  extends ServiceImpl<TCustomerMapper, TCustome
         updateWrapper.eq("id",userId);
         updateWrapper.set("grade",vip);
         return this.update(updateWrapper);
+    }
+
+    @Override
+    public int newRegisterCount(Date begin, Date end) {
+        QueryWrapper<TCustomer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.between("create_time",begin,end);
+        return (int) count(queryWrapper);
     }
 
     @Override

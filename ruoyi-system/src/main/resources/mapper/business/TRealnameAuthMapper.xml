@@ -8,8 +8,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="id"    column="id"    />
         <result property="customerId"    column="customer_id"    />
         <result property="realName"    column="real_name"    />
-        <result property="idCardFront"    column="id_card_front"    />
-        <result property="idCardBack"    column="id_card_back"    />
+        <result property="phoneNumber"    column="phone_number"    />
+        <result property="telegramId"    column="telegram_id"    />
+        <result property="whatsappId"    column="whatsapp_id"    />
         <result property="status"    column="status"    />
         <result property="auditReason"    column="audit_reason"    />
         <result property="auditTime"    column="audit_time"    />
@@ -19,7 +20,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectTRealnameAuthVo">
-        select id, customer_id, real_name, id_card_front, id_card_back, status, audit_reason, audit_time, audit_by, create_time, update_time from t_realname_auth
+        select id, customer_id, real_name, phone_number, telegram_id,whatsapp_id, status, audit_reason, audit_time, audit_by, create_time, update_time from t_realname_auth
     </sql>
 
     <select id="selectTRealnameAuthList" parameterType="TRealnameAuth" resultMap="TRealnameAuthResult">
@@ -27,13 +28,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>  
             <if test="customerId != null "> and customer_id = #{customerId}</if>
             <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
-            <if test="idCardFront != null  and idCardFront != ''"> and id_card_front = #{idCardFront}</if>
-            <if test="idCardBack != null  and idCardBack != ''"> and id_card_back = #{idCardBack}</if>
+            <if test="phoneNumber != null  and phoneNumber != ''"> and phone_number = #{phoneNumber}</if>
+            <if test="telegramId != null  and telegramId != ''"> and telegram_id = #{telegramId}</if>
+            <if test="whatsappId != null  and whatsappId != ''"> and whatsapp_id = #{whatsappId}</if>
             <if test="status != null "> and status = #{status}</if>
             <if test="auditReason != null  and auditReason != ''"> and audit_reason = #{auditReason}</if>
             <if test="auditTime != null "> and audit_time = #{auditTime}</if>
             <if test="auditBy != null  and auditBy != ''"> and audit_by = #{auditBy}</if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectTRealnameAuthById" parameterType="Long" resultMap="TRealnameAuthResult">
@@ -46,8 +49,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="customerId != null">customer_id,</if>
             <if test="realName != null and realName != ''">real_name,</if>
-            <if test="idCardFront != null and idCardFront != ''">id_card_front,</if>
-            <if test="idCardBack != null and idCardBack != ''">id_card_back,</if>
+            <if test="phoneNumber != null and phoneNumber != ''">phone_number,</if>
+            <if test="telegramId != null and telegramId != ''">telegram_id,</if>
+            <if test="whatsappId != null and whatsappId != ''">whatsapp_id,</if>
             <if test="status != null">status,</if>
             <if test="auditReason != null">audit_reason,</if>
             <if test="auditTime != null">audit_time,</if>
@@ -58,8 +62,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="customerId != null">#{customerId},</if>
             <if test="realName != null and realName != ''">#{realName},</if>
-            <if test="idCardFront != null and idCardFront != ''">#{idCardFront},</if>
-            <if test="idCardBack != null and idCardBack != ''">#{idCardBack},</if>
+            <if test="phoneNumber != null and phoneNumber != ''">#{phone_number},</if>
+            <if test="telegramId != null and telegramId != ''">#{telegram_id},</if>
+            <if test="whatsappId != null and whatsappId != ''">#{whatsapp_id},</if>
             <if test="status != null">#{status},</if>
             <if test="auditReason != null">#{auditReason},</if>
             <if test="auditTime != null">#{auditTime},</if>
@@ -74,8 +79,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="customerId != null">customer_id = #{customerId},</if>
             <if test="realName != null and realName != ''">real_name = #{realName},</if>
-            <if test="idCardFront != null and idCardFront != ''">id_card_front = #{idCardFront},</if>
-            <if test="idCardBack != null and idCardBack != ''">id_card_back = #{idCardBack},</if>
+            <if test="phoneNumber != null and phoneNumber != ''">phone_number = #{phoneNumber},</if>
+            <if test="telegramId != null and telegramId != ''">telegram_id = #{telegramId},</if>
+            <if test="whatsappId != null and whatsappId != ''">whatsapp_id = #{whatsappId},</if>
             <if test="status != null">status = #{status},</if>
             <if test="auditReason != null">audit_reason = #{auditReason},</if>
             <if test="auditTime != null">audit_time = #{auditTime},</if>

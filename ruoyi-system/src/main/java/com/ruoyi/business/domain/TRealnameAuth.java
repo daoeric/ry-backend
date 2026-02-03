@@ -31,13 +31,20 @@ public class TRealnameAuth
     @Excel(name = "真实姓名")
     private String realName;
 
-    /** 身份证正面图片URL */
-    @Excel(name = "身份证正面图片URL")
-    private String idCardFront;
+//    /** 身份证正面图片URL */
+//    @Excel(name = "身份证正面图片URL")
+//    private String idCardFront;
+//
+//    /** 身份证反面图片URL */
+//    @Excel(name = "身份证反面图片URL")
+//    private String idCardBack;
 
-    /** 身份证反面图片URL */
-    @Excel(name = "身份证反面图片URL")
-    private String idCardBack;
+    private String phoneNumber;
+
+    private String telegramId;
+
+    private String whatsappId;
+
 
     /** 状态：0-待审核，1-审核通过，2-审核拒绝 */
     @Excel(name = "状态：0-待审核，1-审核通过，2-审核拒绝")

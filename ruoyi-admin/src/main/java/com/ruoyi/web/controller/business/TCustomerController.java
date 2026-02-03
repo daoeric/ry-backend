@@ -1,7 +1,11 @@
 package com.ruoyi.web.controller.business;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import com.ruoyi.common.utils.DateUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -112,4 +116,15 @@ public class TCustomerController extends BaseController
     {
         return toAjax(tCustomerService.deleteTCustomerByIds(ids));
     }
+
+    @GetMapping("/today/count")
+    public AjaxResult todayCount() throws ParseException {
+        Date begin = DateUtils.getDateBegin(DateUtils.getNowDate());
+        Date end = DateUtils.getDateEnd(DateUtils.getNowDate());
+        //获取今日新注册用户
+        int count = tCustomerService.newRegisterCount(begin,end);
+        return AjaxResult.success(count);
+    }
+
+
 }

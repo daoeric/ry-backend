@@ -3,6 +3,7 @@ package com.ruoyi.common.dto;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Data
 public class RealNameAuthDto {
@@ -10,18 +11,15 @@ public class RealNameAuthDto {
     /**
      * 真实姓名
      */
-    @NotBlank(message = "真实姓名不能为空")
+    @NotNull(message = "Real name cant be null")
     private String realName;
 
-    /**
-     * 身份证正面图片URL
-     */
-    @NotBlank(message = "身份证正面图片不能为空")
-    private String idCardFront;
+    @NotNull(message = "Phone number cant be null")
+    private String phoneNumber;
 
-    /**
-     * 身份证反面图片URL
-     */
-    @NotBlank(message = "身份证反面图片不能为空")
-    private String idCardBack;
+    private String telegramId;
+
+    private String whatsappId;
+
+
 }

@@ -14,6 +14,7 @@ import com.ruoyi.common.core.domain.model.LoginMerchantUser;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.dto.ChangePasswordDto;
+import com.ruoyi.common.dto.RealNameAuthDto;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.ServletUtils;
@@ -141,22 +142,11 @@ public class MerchantProfileController extends BaseController
      * 实名认证
      */
     @Log(title = "商户实名认证", businessType = BusinessType.UPDATE)
-    @PostMapping(value = "/realname/auth", consumes = "application/x-www-form-urlencoded;charset=UTF-8")
-    public AjaxResult realnameAuth(
-            @RequestParam("realName") String realName,
-            @RequestParam("idCardFront") String idCardFront,
-            @RequestParam("idCardBack") String idCardBack)
+    @PostMapping(value = "/realname/auth")
+    public AjaxResult realnameAuth(@Validated @RequestBody RealNameAuthDto realNameAuthDto)
     {
-        // Validate inputs
-        if (realName == null || realName.trim().isEmpty()) {
-            return AjaxResult.errorByCode("merchant.realname.auth.required.fields.error");
-        }
-        if (idCardFront == null || idCardFront.trim().isEmpty()) {
-            return AjaxResult.errorByCode("merchant.id.card.front.required.error");
-        }
-        if (idCardBack == null || idCardBack.trim().isEmpty()) {
-            return AjaxResult.errorByCode("merchant.id.card.back.required.error");
-        }
+        String realName =  realNameAuthDto.getRealName();
+        String phoneNumber = realNameAuthDto.getPhoneNumber();
 
         // 获取当前登录用户
         LoginMerchantUser loginUser = (LoginMerchantUser) tokenService.getLoginUser(ServletUtils.getRequest());
@@ -182,8 +172,9 @@ public class MerchantProfileController extends BaseController
         TRealnameAuth realnameAuth = new TRealnameAuth();
         realnameAuth.setCustomerId(customer.getId());
         realnameAuth.setRealName(realName);
-        realnameAuth.setIdCardFront(idCardFront);
-        realnameAuth.setIdCardBack(idCardBack);
+        realnameAuth.setPhoneNumber(phoneNumber);
+        realnameAuth.setTelegramId(realNameAuthDto.getTelegramId());
+        realnameAuth.setWhatsappId(realNameAuthDto.getWhatsappId());
         realnameAuth.setStatus(0); // 待审核状态
         
         // 保存实名认证记录

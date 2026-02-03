@@ -69,5 +69,5 @@ public interface ITRealnameAuthService extends IService<TRealnameAuth>
      */
     public TRealnameAuth selectByCustomerId(Long customerId);
 
-    boolean approve(Long id, int i, String auditReason);
+    boolean approve(Long id, int i, String auditReason,String username);
 }
